@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="transparent">#00000000</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="blue_primary">#1E88E5</color>
+    <color name="blue_dark">#005CB1</color>
+    <color name="blue_light">#6AB7FF</color>
+    <color name="blue_500">#1E88E5</color>
+    <color name="blue_700">#005CB1</color>
+    <color name="blue_200">#6AB7FF</color>
+    <color name="additional_note_color">#FFD54F</color>
+    <color name="orange_200">#FFCC80</color>
+    <color name="orange_300">#FFB74D</color>
+    <color name="orange_400">#FFA726</color>
+    <color name="orange_500">#FF9800</color>
+    <color name="orange_600">#FB8C00</color>
+    <color name="orange_700">#F57C00</color>
+    <color name="orange_800">#EF6C00</color>
+    <color name="red_disabled">#FF0000</color>
+    <!-- grey tones -->
+    <color name="material_dynamic_neutral60">#9E9E9E</color>
+    <color name="grey_text">#888888</color>
+    <color name="my_light_gray">#E0E0E0</color>
+
+    <!--<color name="white_text">#FFFFFF</color>-->
+    <!-- white tone -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="neutral_background">#E0E0E0</color>
+    <color name="floral_white">#FFFAF0</color>
+    <color name="seashell">#FFF5EE</color>
+    <color name="ivory">#FFFFF0</color>
+    <color name="cornsilk">#FFF8DC</color>
+    <!-- black tone -->
+    <color name="black">#FF000000</color>
+    <color name="rich_black">#0B0C10</color>
+    <color name="onyx_modern">#121212</color>
+    <color name="eerie_black_deep">#161616</color>
+    <color name="jet_black">#1A1A1A</color>
+    <color name="eerie_black">#1B1B1B</color>
+    <color name="raisin_black">#242124</color>
+    <color name="gunmetal">#2A3439</color>
+    <color name="onyx_traditional">#353839</color>
+    <color name="jet_black_soft">#343434</color>
+    <color name="onyx_dark">#2B2B2B</color>
+    <color name="charcoal_dark">#323232</color>
+    <color name="charcoal">#36454F</color>
+</resources>
