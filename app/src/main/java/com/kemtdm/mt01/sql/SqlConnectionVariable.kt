@@ -12,9 +12,9 @@ object SqlConnectionVariable {
 
     var serverIp: String = "192.168.100.7"
     var serverPort: String = "1433"
-    var databaseName: String = "TEST_KCOP"
+    var databaseName: String = "V1_KCOP"
     var userName: String = "sa"
-    var password: String = "Sql!@#$"
+    var password: String = "wwwww"
 
     const val MSSQL_TRUST = "encrypt=false;trustServerCertificate=true;"
 

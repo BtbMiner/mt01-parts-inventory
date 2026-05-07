@@ -250,7 +250,7 @@ class LoginActivity : AppCompatActivity() {
             }
 
             Log.d(logTAG, "Connection successful. Preparing statement.")
-            val sql = "SELECT USER_ID FROM CM_USER WHERE USER_ID = ? AND PASSWORD = ?"
+            val sql = "SELECT USER_ID, USER_NAME, ADMINISTRATOR_FLAG FROM CM_USER WHERE USER_ID = ? AND PASSWORD = ? AND (DISABLED = 0 OR DISABLED IS NULL)"
             preparedStatement = connection.prepareStatement(sql)
             preparedStatement.setString(1, userId)
             preparedStatement.setString(2, password)
@@ -261,7 +261,9 @@ class LoginActivity : AppCompatActivity() {
             return if (resultSet.next()) {
                 Log.d(logTAG, "Found user in database.")
                 val user = resultSet.getString("USER_ID")
-                saveUserId(user)
+                val userName = resultSet.getString("USER_NAME")
+                val isAdmin = resultSet.getBoolean("ADMINISTRATOR_FLAG")
+                saveUserPref(user,userName, isAdmin )
                 AuthenticationResult.Success
             } else {
                 Log.d(logTAG, "User not found in database.")
@@ -282,12 +284,14 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveUserId(userId: String) {
+    private fun saveUserPref(userId: String, userName: String, isAdmin: Boolean) {
         val sharedPreferences = getSharedPreferences("LoginData", MODE_PRIVATE)
         sharedPreferences.edit {
             putString("UserID", userId)
+            putString("UserName",userName)
+            putBoolean("IsAdmin",isAdmin)
         }
-        Log.d(logTAG, "UserID '$userId' saved to SharedPreferences.")
+        Log.d(logTAG, "UserID '$userId' UserName '$userName' IsAdmin '$isAdmin' saved to SharedPreferences.")
     }
 
     sealed class AuthenticationResult {
