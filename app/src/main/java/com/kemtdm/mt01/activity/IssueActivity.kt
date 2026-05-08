@@ -48,7 +48,6 @@ class IssueActivity : AppCompatActivity() {
     private lateinit var etQty: EditText
     private lateinit var etRemark: EditText
     private lateinit var tvTxnDate: TextView
-    private lateinit var btnPickDate: Button
     private lateinit var btnConfirm: Button
 
     private var currentStock: StockInfo? = null
@@ -97,7 +96,6 @@ class IssueActivity : AppCompatActivity() {
         etQty          = findViewById(R.id.et_qty)
         etRemark       = findViewById(R.id.et_remark)
         tvTxnDate      = findViewById(R.id.tv_txn_date)
-        btnPickDate    = findViewById(R.id.btn_pick_date)
         btnConfirm     = findViewById(R.id.btn_confirm)
     }
 
@@ -115,7 +113,7 @@ class IssueActivity : AppCompatActivity() {
             true
         }
 
-        btnPickDate.setOnClickListener { showDatePicker() }
+        tvTxnDate.setOnClickListener { showDatePicker() }
         btnConfirm.setOnClickListener { doConfirm() }
     }
 
@@ -201,7 +199,7 @@ class IssueActivity : AppCompatActivity() {
 
         MaterialAlertDialogBuilder(this)
             .setTitle("ยืนยันการเบิก")
-            .setMessage("${stock.partName}\nจำนวน ${qty!!.toInt()} ${stock.unit}\nวันที่ $selectedDate")
+            .setMessage("${stock.partName}\nจำนวน ${qty.toInt()} ${stock.unit}\nวันที่ $selectedDate")
             .setPositiveButton("ยืนยัน") { _, _ -> saveTxn(stock, qty) }
             .setNegativeButton("ยกเลิก", null)
             .show()

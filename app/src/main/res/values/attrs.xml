@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="additionalNoteColor" format="color" />
+
+    <!-- Custom Theme Attributes for MT01 -->
+    <attr name="colorPageBackground" format="color" />
+    <attr name="colorCardBackground" format="color" />
+    <attr name="colorTextPrimary" format="color" />
+    <attr name="colorTextSecondary" format="color" />
+
+    <!-- Status Colors -->
+    <attr name="colorStatusLow" format="color" />
+    <attr name="colorStatusOut" format="color" />
+
+    <!-- Transaction Specific Colors -->
+    <attr name="colorTxnIn" format="color" />
+    <attr name="colorTxnOut" format="color" />
+    <attr name="colorTxnReturn" format="color" />
 </resources>

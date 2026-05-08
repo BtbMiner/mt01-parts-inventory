@@ -2,12 +2,11 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="?attr/materialCardViewElevatedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="6dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="1dp"
-    app:cardBackgroundColor="@color/white">
+    app:cardBackgroundColor="?attr/colorCardBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,9 +18,9 @@
         <!-- TxnType badge -->
         <TextView
             android:id="@+id/tv_txn_type"
-            android:layout_width="48dp"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textStyle="bold"
             android:gravity="center"
             android:layout_marginEnd="10dp" />
@@ -37,16 +36,16 @@
                 android:id="@+id/tv_part_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textStyle="bold"
-                android:textColor="@color/black" />
+                android:textColor="?attr/colorTextPrimary" />
 
             <TextView
                 android:id="@+id/tv_created_by"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/grey_text" />
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorTextSecondary" />
 
         </LinearLayout>
 
@@ -61,16 +60,16 @@
                 android:id="@+id/tv_qty"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"
-                android:textColor="@color/black"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorTextPrimary"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tv_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="11sp"
-                android:textColor="@color/grey_text" />
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorTextSecondary" />
 
         </LinearLayout>
 

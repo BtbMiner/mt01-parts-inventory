@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.color.MaterialColors
 import com.kemtdm.mt01.R
 import com.kemtdm.mt01.data.StockInfo
 import com.kemtdm.mt01.data.StockRepository
@@ -219,15 +220,15 @@ class LowStockAdapter(private val items: List<StockInfo>) :
         when (item.stockStatus) {
             StockStatus.OUT -> {
                 holder.tvStatus.text = "หมด"
-                holder.tvStatus.setTextColor(ctx.getColor(R.color.red_disabled))
+                holder.tvStatus.setTextColor(MaterialColors.getColor(ctx, R.attr.colorStatusOut, ctx.getColor(R.color.red_disabled)))
             }
             StockStatus.LOW -> {
                 holder.tvStatus.text = "ใกล้หมด"
-                holder.tvStatus.setTextColor(ctx.getColor(R.color.orange_500))
+                holder.tvStatus.setTextColor(MaterialColors.getColor(ctx, R.attr.colorStatusLow, ctx.getColor(R.color.orange_500)))
             }
             StockStatus.NORMAL -> {
                 holder.tvStatus.text = "ปกติ"
-                holder.tvStatus.setTextColor(ctx.getColor(android.R.color.holo_green_dark))
+                holder.tvStatus.setTextColor(MaterialColors.getColor(ctx, R.attr.colorTxnIn, ctx.getColor(android.R.color.holo_green_dark)))
             }
         }
     }
@@ -261,10 +262,10 @@ class RecentTxnAdapter(private val items: List<TxnRecord>) :
         val ctx  = holder.itemView.context
 
         val (label, color) = when (item.txnType) {
-            "IN"  -> Pair("รับเข้า", ctx.getColor(android.R.color.holo_green_dark))
-            "OUT" -> Pair("เบิก",   ctx.getColor(R.color.orange_500))
-            "RET" -> Pair("คืน",    ctx.getColor(R.color.blue_primary))
-            else  -> Pair(item.txnType, ctx.getColor(R.color.grey_text))
+            "IN"  -> Pair("รับเข้า", MaterialColors.getColor(ctx, R.attr.colorTxnIn, ctx.getColor(android.R.color.holo_green_dark)))
+            "OUT" -> Pair("เบิก",   MaterialColors.getColor(ctx, R.attr.colorTxnOut, ctx.getColor(R.color.orange_500)))
+            "RET" -> Pair("คืน",    MaterialColors.getColor(ctx, R.attr.colorTxnReturn, ctx.getColor(R.color.blue_primary)))
+            else  -> Pair(item.txnType, MaterialColors.getColor(ctx, R.attr.colorTextSecondary, ctx.getColor(R.color.grey_text)))
         }
 
         holder.tvTxnType.text  = label

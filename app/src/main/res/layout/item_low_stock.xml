@@ -2,12 +2,11 @@
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="?attr/materialCardViewElevatedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="6dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="1dp"
-    app:cardBackgroundColor="@color/white">
+    app:cardBackgroundColor="?attr/colorCardBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,16 +26,16 @@
                 android:id="@+id/tv_part_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textStyle="bold"
-                android:textColor="@color/black" />
+                android:textColor="?attr/colorTextPrimary" />
 
             <TextView
                 android:id="@+id/tv_loc_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/grey_text" />
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorTextSecondary" />
 
         </LinearLayout>
 
@@ -51,14 +50,14 @@
                 android:id="@+id/tv_qty"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"
-                android:textColor="@color/black" />
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorTextPrimary" />
 
             <TextView
                 android:id="@+id/tv_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textStyle="bold" />
 
         </LinearLayout>

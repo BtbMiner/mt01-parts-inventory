@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/neutral_background">
+    android:background="?attr/colorPageBackground">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -14,9 +14,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/green_700"
+            android:background="?attr/colorTxnIn"
             app:title="รับของเข้า (Receive)"
-            app:titleTextColor="@color/white" />
+            app:titleTextColor="?attr/colorOnPrimary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,11 +33,11 @@
             android:orientation="vertical">
 
             <com.google.android.material.card.MaterialCardView
+                style="?attr/materialCardViewElevatedStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                app:cardBackgroundColor="?attr/colorCardBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -45,14 +45,13 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_open_scanner"
+                        style="@style/Widget.Material3.Button"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
                         android:text="สแกน QR Code"
-                        android:textSize="16sp"
-                        app:icon="@android:drawable/ic_menu_camera"
-                        app:cornerRadius="8dp" />
+                        app:icon="@android:drawable/ic_menu_camera" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -60,8 +59,8 @@
                         android:text="หรือระบุรหัสด้วยตนเอง"
                         android:gravity="center"
                         android:layout_marginVertical="8dp"
-                        android:textColor="@color/grey_text"
-                        android:textSize="12sp" />
+                        android:textColor="?attr/colorTextSecondary"
+                        android:textAppearance="?attr/textAppearanceLabelMedium" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -69,7 +68,7 @@
                         android:orientation="horizontal">
 
                         <com.google.android.material.textfield.TextInputLayout
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -82,8 +81,9 @@
                                 android:inputType="text" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_manual_search"
+                            style="@style/Widget.Material3.Button.TonalButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
@@ -102,10 +102,11 @@
                 android:visibility="gone">
 
                 <com.google.android.material.card.MaterialCardView
+                    style="?attr/materialCardViewElevatedStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardCornerRadius="12dp">
+                    app:cardBackgroundColor="?attr/colorCardBackground">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -118,24 +119,24 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="ชื่ออุปกรณ์/อะไหล่"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/black" />
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textColor="?attr/colorTextPrimary" />
 
                         <TextView
                             android:id="@+id/tv_part_code"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="Part Code: -"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorTextSecondary"
                             android:layout_marginTop="4dp" />
-                        <!-- Location + Stock row -->
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:layout_marginTop="12dp">
 
-                            <!-- LEFT: Location -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -146,19 +147,17 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="ตำแหน่ง"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/grey_text" />
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="?attr/colorTextSecondary" />
 
                                 <TextView
                                     android:id="@+id/tv_loc_id"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="20sp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/blue_primary" />
+                                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                                    android:textColor="?attr/colorPrimary" />
                             </LinearLayout>
 
-                            <!-- RIGHT: STOCK -->
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -170,8 +169,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="คงเหลือ"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/grey_text" />
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="?attr/colorTextSecondary" />
 
                                 <LinearLayout
                                     android:layout_width="wrap_content"
@@ -182,27 +181,23 @@
                                         android:id="@+id/tv_current_qty"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:textSize="24sp"
-                                        android:textStyle="bold"
-                                        android:textColor="@color/black" />
+                                        android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                                        android:textColor="?attr/colorTextPrimary" />
 
                                     <TextView
                                         android:id="@+id/tv_unit_display"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:textSize="14sp"
+                                        android:textAppearance="?attr/textAppearanceBodySmall"
                                         android:layout_marginStart="4dp"
-                                        android:textColor="@color/grey_text" />
+                                        android:textColor="?attr/colorTextSecondary" />
                                 </LinearLayout>
-
                             </LinearLayout>
-
                         </LinearLayout>
 
-                        <View
+                        <com.google.android.material.divider.MaterialDivider
                             android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="#EEEEEE"
+                            android:layout_height="wrap_content"
                             android:layout_marginVertical="12dp" />
 
                         <LinearLayout
@@ -215,7 +210,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:layout_marginEnd="8dp"
-                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                                 android:hint="จำนวนรับเข้า">
 
                                 <com.google.android.material.textfield.TextInputEditText
@@ -230,8 +225,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="center_vertical"
-                                android:text="Pcs"
-                                android:textStyle="bold" />
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:text="Pcs" />
                         </LinearLayout>
 
                         <TextView
@@ -242,13 +237,14 @@
                             android:padding="12dp"
                             android:background="@drawable/option_button_background"
                             android:text="วันที่รับ: 2024-05-07"
-                            android:drawableEnd="@android:drawable/ic_menu_my_calendar" />
+                            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+                            android:textColor="?attr/colorTextPrimary" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                             android:hint="หมายเหตุ">
 
                             <com.google.android.material.textfield.TextInputEditText
@@ -263,14 +259,14 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_confirm"
+                    style="@style/Widget.Material3.Button"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="ยืนยันการรับเข้า"
-                    android:textSize="16sp"
                     android:paddingVertical="12dp"
                     android:enabled="false"
-                    app:backgroundTint="@color/green_700"
-                    app:cornerRadius="8dp" />
+                    app:backgroundTint="?attr/colorTxnIn"
+                    app:icon="@android:drawable/checkbox_on_background" />
 
             </LinearLayout>
         </LinearLayout>
