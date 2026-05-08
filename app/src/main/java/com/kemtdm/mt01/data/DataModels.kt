@@ -71,16 +71,20 @@ enum class StockStatus { NORMAL, LOW, OUT }
 
 data class TxnRecord(
     val txnId: Int,
-    val txnType: String,        // IN / OUT / RET
+    val txnType: String,        // ✅ IN / OUT / RET / MOV
     val partId: String,
     val locId: String,
+
+    val locFrom: String?,       // ✅ ใหม่
+    val locTo: String?,         // ✅ ใหม่
+
     val qty: Double,
-    val txnDate: String,        // ผู้ใช้ระบุ (yyyy-MM-dd)
+    val txnDate: String,
     val remark: String?,
     val createdBy: String,
-    val createdAt: String,      // ระบบบันทึก (yyyy-MM-dd HH:mm:ss)
+    val createdAt: String,
     val deviceInfo: String?,
-    // joined fields
+
     val partName: String,
     val partCode: String,
     val unit: String
@@ -91,6 +95,10 @@ data class TxnInput(
     val txnType: String,
     val partId: String,
     val locId: String,
+
+    val locFrom: String? = null,   // ✅ ใหม่
+    val locTo: String? = null,     // ✅ ใหม่
+
     val qty: Double,
     val txnDate: String,
     val remark: String?,

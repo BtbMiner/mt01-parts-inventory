@@ -18,6 +18,7 @@
     <color name="orange_700">#F57C00</color>
     <color name="orange_800">#EF6C00</color>
     <color name="red_disabled">#FF0000</color>
+    <color name="green_700">#1B5E20</color>
     <!-- grey tones -->
     <color name="material_dynamic_neutral60">#9E9E9E</color>
     <color name="grey_text">#888888</color>

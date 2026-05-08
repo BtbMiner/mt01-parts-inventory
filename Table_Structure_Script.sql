@@ -96,8 +96,9 @@ BEGIN
 END
 GO
 
+
 -- ------------------------------------------------------------
--- MT_TXN
+-- MT_TXN (UPDATED VERSION)
 -- ------------------------------------------------------------
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'MT_TXN')
 BEGIN
@@ -105,7 +106,11 @@ BEGIN
         TXN_ID        INT            NOT NULL IDENTITY(1,1),
         TXN_TYPE      NVARCHAR(3)    NOT NULL,
         PART_ID       NVARCHAR(20)   NOT NULL,
-        LOC_ID        NVARCHAR(10)   NOT NULL,
+
+        LOC_ID        NVARCHAR(10)   NOT NULL,   -- main location (backward compatible)
+        LOC_FROM      NVARCHAR(10)   NULL,       -- ✅ เพิ่ม
+        LOC_TO        NVARCHAR(10)   NULL,       -- ✅ เพิ่ม
+
         QTY           DECIMAL(12,2)  NOT NULL,
         TXN_DATE      DATE           NOT NULL,
         REMARK        NVARCHAR(500)  NULL,
@@ -114,16 +119,34 @@ BEGIN
         DEVICE_INFO   NVARCHAR(200)  NULL,
 
         CONSTRAINT PK_MT_TXN         PRIMARY KEY (TXN_ID),
+
         CONSTRAINT FK_TXN_PART       FOREIGN KEY (PART_ID)
             REFERENCES MT_PART_ITEM(PART_ID),
+
         CONSTRAINT FK_TXN_LOC        FOREIGN KEY (LOC_ID)
             REFERENCES MT_LOCATION(LOC_ID),
-        CONSTRAINT CK_MT_TXN_TYPE    CHECK (TXN_TYPE IN ('IN','OUT','RET')),
-        CONSTRAINT CK_MT_TXN_QTY     CHECK (QTY > 0)
+
+        -- ✅ Constraint ใหม่
+        CONSTRAINT CK_MT_TXN_TYPE    
+            CHECK (TXN_TYPE IN ('IN','OUT','RET','MOV')),
+
+        CONSTRAINT CK_MT_TXN_QTY     
+            CHECK (QTY > 0),
+
+        -- ✅ Optional แต่แนะนำมาก (กันข้อมูลเพี้ยน)
+        CONSTRAINT CK_MT_TXN_FLOW
+        CHECK (
+            (TXN_TYPE = 'IN'  AND LOC_TO IS NOT NULL) OR
+            (TXN_TYPE = 'OUT' AND LOC_FROM IS NOT NULL) OR
+            (TXN_TYPE = 'RET' AND LOC_ID IS NOT NULL) OR
+            (TXN_TYPE = 'MOV' AND LOC_FROM IS NOT NULL AND LOC_TO IS NOT NULL)
+        )
     );
-    PRINT 'Created: MT_TXN';
+
+    PRINT 'Created: MT_TXN (UPDATED)';
 END
 GO
+
 
 -- ------------------------------------------------------------
 -- MT_AUDIT_LOG

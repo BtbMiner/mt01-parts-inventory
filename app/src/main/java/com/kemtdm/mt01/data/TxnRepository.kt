@@ -20,64 +20,112 @@ object TxnRepository {
         var connection: Connection? = null
         try {
             connection = GetConnection.connection ?: return@withContext false
-            connection.autoCommit = false   // เริ่ม transaction
+            connection.autoCommit = false
 
-            // 1. ดึงยอดปัจจุบันก่อน (ใช้ใน AUDIT OLD_VALUE ด้วย)
-            val currentQty = getCurrentQty(connection, input.partId)
+            // ✅ 1. ดึง stock ปัจจุบัน (ล็อก row กัน race condition)
+            val (currentQty, currentLoc) = getCurrentStock(connection, input.partId)
                 ?: run {
                     connection.rollback()
                     return@withContext false
                 }
 
-            // 2. คำนวณยอดใหม่
+            // ✅ 2. คำนวณ QTY ใหม่
             val newQty = when (input.txnType) {
-                "IN"  -> currentQty + input.qty
-                "OUT" -> currentQty - input.qty
-                "RET" -> currentQty + input.qty
-                else  -> {
+                "IN", "RET" -> currentQty + input.qty
+                "OUT"       -> currentQty - input.qty
+                else -> {
                     connection.rollback()
                     return@withContext false
                 }
             }
 
             if (newQty < 0) {
-                // Stock ไม่พอ (OUT เกินยอด)
+                Log.e(TAG, "Stock not enough: current=$currentQty request=${input.qty}")
                 connection.rollback()
                 return@withContext false
             }
 
-            // 3. Insert MT_TXN
-            val txnId = insertTxn(connection, input) ?: run {
+            // ✅ 3. เตรียม LOC_FROM / LOC_TO ให้ตรง constraint
+            val finalLocFrom: String?
+            val finalLocTo: String?
+
+            when (input.txnType) {
+                "OUT" -> {
+                    finalLocFrom = input.locId
+                    finalLocTo   = null
+                }
+                "IN", "RET" -> {
+                    finalLocFrom = null
+                    finalLocTo   = input.locId
+                }
+                else -> {
+                    connection.rollback()
+                    return@withContext false
+                }
+            }
+
+            // ✅ 4. INSERT MT_TXN
+            val txnId = insertTxn(
+                connection = connection,
+                input = input,
+                locFrom = finalLocFrom,
+                locTo = finalLocTo
+            ) ?: run {
                 connection.rollback()
                 return@withContext false
             }
 
-            // 4. Update MT_STOCK
+            // ✅ 5. UPDATE MT_STOCK
             updateStock(connection, input.partId, newQty)
 
-            // 5. Insert MT_AUDIT_LOG (ACTION = CREATE)
+            // ✅ 6. AUDIT LOG (แบบ JSON snapshot)
+            val oldJson = """{"PART_ID":"${input.partId}","LOC_ID":"$currentLoc","QTY_ON_HAND":$currentQty}"""
+            val newJson = """{"PART_ID":"${input.partId}","LOC_ID":"${input.locId}","QTY_ON_HAND":$newQty}"""
+
             insertAuditLog(
-                connection  = connection,
-                txnId       = txnId,
-                action      = "CREATE",
-                changedBy   = input.createdBy,
-                oldValue    = null,
-                newValue    = """{"TXN_TYPE":"${input.txnType}","QTY":${input.qty},"TXN_DATE":"${input.txnDate}","QTY_AFTER":$newQty}""",
-                deviceInfo  = input.deviceInfo
+                connection = connection,
+                txnId = txnId,
+                action = "CREATE",
+                changedBy = input.createdBy,
+                oldValue = oldJson,
+                newValue = newJson,
+                deviceInfo = input.deviceInfo
             )
 
             connection.commit()
-            return@withContext true
+            Log.d(TAG, "saveTxn SUCCESS: txnId=$txnId part=${input.partId}")
+            true
 
         } catch (e: SQLException) {
-            Log.e(TAG, "saveTxn: ${e.message}", e)
+
+            // ✅ ✅ ✅ DEBUG สำคัญมาก
+            Log.e(TAG, "=== SQL ERROR ===")
+            Log.e(TAG, "Message: ${e.message}")
+            Log.e(TAG, "SQLState: ${e.sqlState}")
+            Log.e(TAG, "ErrorCode: ${e.errorCode}")
+
+            var next: SQLException? = e.nextException
+            while (next != null) {
+                Log.e(TAG, "NextException: ${next.message}")
+                next = next.nextException
+            }
+
             connection?.rollback()
-            return@withContext false
+            false
+
+        } catch (e: Exception) {
+
+            Log.e(TAG, "=== GENERAL ERROR === ${e.message}", e)
+
+            connection?.rollback()
+            false
+
         } finally {
             connection?.autoCommit = true
             connection?.close()
         }
     }
+
 
     // -------------------------------------------------------
     // getRecentTxn
@@ -95,7 +143,7 @@ object TxnRepository {
             connection = GetConnection.connection ?: return@withContext result
 
             val sql = """
-                SELECT  T.TXN_ID, T.TXN_TYPE, T.PART_ID, T.LOC_ID,
+                SELECT  T.TXN_ID, T.TXN_TYPE, T.PART_ID, T.LOC_ID, T.LOC_FROM, T.LOC_TO,
                         T.QTY, CONVERT(NVARCHAR(10), T.TXN_DATE, 120) AS TXN_DATE,
                         T.REMARK, T.CREATED_BY,
                         CONVERT(NVARCHAR(19), T.CREATED_AT, 120) AS CREATED_AT,
@@ -129,45 +177,81 @@ object TxnRepository {
     // Private helpers
     // -------------------------------------------------------
 
-    private fun getCurrentQty(connection: Connection, partId: String): Double? {
+    private fun getCurrentStock(connection: Connection, partId: String): Pair<Double, String>? {
         connection.prepareStatement(
-            "SELECT QTY_ON_HAND FROM MT_STOCK WHERE PART_ID = ?"
+            "SELECT QTY_ON_HAND, LOC_ID FROM MT_STOCK WITH (UPDLOCK) WHERE PART_ID = ?"
         ).use { ps ->
             ps.setString(1, partId)
             ps.executeQuery().use { rs ->
-                if (rs.next()) return rs.getDouble("QTY_ON_HAND")
+                if (rs.next()) {
+                    return Pair(
+                        rs.getDouble("QTY_ON_HAND"),
+                        rs.getString("LOC_ID")
+                    )
+                }
             }
         }
-        Log.e(TAG, "getCurrentQty: PART_ID $partId not found in MT_STOCK")
         return null
     }
 
-    private fun insertTxn(connection: Connection, input: TxnInput): Int? {
-        val sql = """
-            INSERT INTO MT_TXN
-                (TXN_TYPE, PART_ID, LOC_ID, QTY, TXN_DATE, REMARK, CREATED_BY, DEVICE_INFO)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
-            SELECT SCOPE_IDENTITY() AS NEW_ID;
-        """.trimIndent()
 
-        connection.prepareStatement(sql).use { ps ->
+
+    private fun insertTxn(
+        connection: Connection,
+        input: TxnInput,
+        locFrom: String?,
+        locTo: String?
+    ): Int? {
+
+        val sql = """
+        INSERT INTO MT_TXN
+        (TXN_TYPE, PART_ID, LOC_ID, LOC_FROM, LOC_TO, QTY, TXN_DATE, REMARK, CREATED_BY, DEVICE_INFO)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """.trimIndent()
+
+        connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS).use { ps ->
+
             ps.setString(1, input.txnType)
             ps.setString(2, input.partId)
             ps.setString(3, input.locId)
-            ps.setDouble(4, input.qty)
-            ps.setString(5, input.txnDate)
-            ps.setString(6, input.remark)
-            ps.setString(7, input.createdBy)
-            ps.setString(8, input.deviceInfo)
-            ps.execute()
-            // jTDS คืนผ่าน ResultSet หลัง execute
-            if (ps.moreResults.not()) {
-                val rs = ps.resultSet ?: ps.getResultSet()
-                rs?.use { if (it.next()) return it.getInt("NEW_ID") }
+
+            if (locFrom == null) ps.setNull(4, java.sql.Types.VARCHAR)
+            else ps.setString(4, locFrom)
+
+            if (locTo == null) ps.setNull(5, java.sql.Types.VARCHAR)
+            else ps.setString(5, locTo)
+
+            ps.setDouble(6, input.qty)
+            ps.setString(7, input.txnDate)
+            ps.setString(8, input.remark)
+            ps.setString(9, input.createdBy)
+            ps.setString(10, input.deviceInfo)
+
+            val affected = ps.executeUpdate()
+
+            if (affected == 0) {
+                Log.e(TAG, "Insert failed: 0 rows affected")
+                return null
             }
+
+
+            val rs = ps.generatedKeys
+            if (rs.next()) {
+                return rs.getInt(1)
+            }
+
+            if (!rs.next()) {
+                Log.e(TAG, "Insert ok but no generated key returned")
+            }
+
         }
+
+
         return null
     }
+
+
+
 
     private fun updateStock(connection: Connection, partId: String, newQty: Double) {
         connection.prepareStatement(
@@ -206,12 +290,17 @@ object TxnRepository {
         txnType    = getString("TXN_TYPE"),
         partId     = getString("PART_ID"),
         locId      = getString("LOC_ID"),
+
+        locFrom    = getString("LOC_FROM"),   // ✅ เพิ่ม
+        locTo      = getString("LOC_TO"),     // ✅ เพิ่ม
+
         qty        = getDouble("QTY"),
         txnDate    = getString("TXN_DATE") ?: "",
         remark     = getString("REMARK"),
         createdBy  = getString("CREATED_BY"),
         createdAt  = getString("CREATED_AT") ?: "",
         deviceInfo = getString("DEVICE_INFO"),
+
         partName   = getString("PART_NAME"),
         partCode   = getString("PART_CODE"),
         unit       = getString("UNIT")
