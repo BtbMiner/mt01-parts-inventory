@@ -7,8 +7,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -63,12 +67,23 @@ class IssueActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_issue)
 
         setupToolbar()
         bindViews()
+        setupWindowInsets()
         setupListeners()
         tvTxnDate.text = selectedDate
+    }
+
+    private fun setupWindowInsets() {
+        val appBarLayout = findViewById<View>(R.id.toolbar).parent as View
+        ViewCompat.setOnApplyWindowInsetsListener(appBarLayout) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(top = systemBars.top)
+            insets
+        }
     }
 
     // -------------------------------------------------------

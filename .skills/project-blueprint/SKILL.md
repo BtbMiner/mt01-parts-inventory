@@ -15,6 +15,9 @@ ui: Material 3 (XML + DayNight Support)
 
 ### Layout Management
 - **XML-Based**: Traditional XML layouts using `CoordinatorLayout` and `NestedScrollView`.
+- **Edge-to-Edge Support**: 
+    - Implementation of `enableEdgeToEdge()` in all Activities.
+    - Dynamic status bar handling using `ViewCompat.setOnApplyWindowInsetsListener` to prevent Toolbar overlap.
 - **UX Consistency**: 
     - Consistent padding (16dp) and component styling across all modules.
     - **Standardized Search**: Manual search inputs now consistently support flexible matching (ID, Code, Name) and zero-padding.
@@ -41,6 +44,7 @@ ui: Material 3 (XML + DayNight Support)
 - **Locking**: Row-level locking using `WITH (UPDLOCK)` to prevent race conditions.
 
 ### Validation Logic
+- **Window Insets Handling**: Use of `systemBars()` insets to calculate top padding dynamically, ensuring UI elements are always visible below system bars.
 - **Input Sanitization**: Uniform use of `.trim()` and `normalizeId()` before database queries to handle leading/trailing spaces and formatting mismatches.
 - **Safe Handling**: Standardized check for empty inputs and "not found" states with appropriate user feedback.
 
