@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvEmptyLowStock: TextView
     private lateinit var rvRecentTxn: RecyclerView
     private lateinit var tvEmptyRecentTxn: TextView
+    private lateinit var cardInquiry: MaterialCardView
     private lateinit var cardReceive: MaterialCardView
     private lateinit var cardIssue: MaterialCardView
     private lateinit var cardReturn: MaterialCardView
@@ -80,6 +81,7 @@ class MainActivity : AppCompatActivity() {
         tvEmptyLowStock  = findViewById(R.id.tv_empty_low_stock)
         rvRecentTxn      = findViewById(R.id.rv_recent_txn)
         tvEmptyRecentTxn = findViewById(R.id.tv_empty_recent_txn)
+        cardInquiry      = findViewById(R.id.card_inquiry)
         cardReceive      = findViewById(R.id.card_receive)
         cardIssue        = findViewById(R.id.card_issue)
         cardReturn       = findViewById(R.id.card_return)
@@ -92,6 +94,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupShortcutButtons() {
+        cardInquiry.setOnClickListener {
+            startActivity(Intent(this, InquiryActivity::class.java))
+        }
         cardReceive.setOnClickListener {
             startActivity(Intent(this, ReceiveActivity::class.java))
         }

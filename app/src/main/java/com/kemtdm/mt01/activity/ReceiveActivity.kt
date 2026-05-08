@@ -43,11 +43,11 @@ class ReceiveActivity : AppCompatActivity() {
     private lateinit var btnConfirm: Button
 
     private var currentStock: StockInfo? = null
-    private var selectedDate: String = ""
+    private var selectedDate: String = todayString()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_receive) // ใช้ layout เดียวกับ issue ได้เลย
+        setContentView(R.layout.activity_receive)
 
         setupToolbar()
         initViews()
@@ -82,16 +82,56 @@ class ReceiveActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnOpenScanner.setOnClickListener { startScanning() }
+        
         btnSearch.setOnClickListener {
-            val id = etManualInput.text.toString().trim()
-            if (id.isNotEmpty()) loadPartData(id)
+            val input = etManualInput.text.toString()
+            performFlexibleSearch(input)
         }
+
+        etManualInput.setOnEditorActionListener { _, _, _ ->
+            val input = etManualInput.text.toString()
+            performFlexibleSearch(input)
+            true
+        }
+
         tvTxnDate.setOnClickListener { showDatePicker() }
         btnConfirm.setOnClickListener { confirmReceive() }
     }
 
+    // -------------------------------------------------------
+    // Search Logic
+    // -------------------------------------------------------
+
+    private fun performFlexibleSearch(input: String) {
+        lifecycleScope.launch {
+            when (val result = StockRepository.searchStockFlexible(input)) {
+                is StockRepository.SearchResult.Single -> {
+                    displayStockInfo(result.stock)
+                }
+                is StockRepository.SearchResult.Multiple -> {
+                    showSelectionDialog(result.list)
+                }
+                is StockRepository.SearchResult.NotFound -> {
+                    showError("ไม่พบข้อมูลสำหรับ: $input")
+                    layoutPartInfo.visibility = View.GONE
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun showSelectionDialog(list: List<StockInfo>) {
+        val names = list.map { "${it.partName} (${it.partCode})" }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("เลือกรายการที่ต้องการ")
+            .setItems(names) { _, which ->
+                displayStockInfo(list[which])
+            }
+            .show()
+    }
+
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
-        result.contents?.let { loadPartData(it) }
+        result.contents?.let { loadStockDirect(it) }
     }
 
     private fun startScanning() {
@@ -104,25 +144,27 @@ class ReceiveActivity : AppCompatActivity() {
         barcodeLauncher.launch(options)
     }
 
-    private fun loadPartData(partId: String) {
+    private fun loadStockDirect(partId: String) {
         lifecycleScope.launch {
             val stock = StockRepository.getStockByPartId(partId)
             if (stock != null) {
-                currentStock = stock
-                tvPartName.text = stock.partName
-                tvPartCode.text = stock.partCode
-                tvLocId.text        = stock.locId
-                tvCurrentQty.text   = stock.qtyOnHand.toInt().toString()
-                tvUnitDisplay.text  = stock.unit
-                tvCurrentQty.text = "${stock.qtyOnHand} ${stock.unit}"
-                layoutPartInfo.visibility = View.VISIBLE
-                btnConfirm.isEnabled = true
+                displayStockInfo(stock)
             } else {
-                showError("ไม่พบข้อมูลสินค้าชิ้นนี้ในระบบ")
-                layoutPartInfo.visibility = View.GONE
-                btnConfirm.isEnabled = false
+                showError("ไม่พบ PART ID: $partId")
             }
         }
+    }
+
+    private fun displayStockInfo(stock: StockInfo) {
+        currentStock = stock
+        tvPartName.text = stock.partName
+        tvPartCode.text = stock.partCode
+        tvLocId.text        = stock.locId
+        tvUnitDisplay.text  = stock.unit
+        tvCurrentQty.text = "${stock.qtyOnHand.toInt()} ${stock.unit}"
+        layoutPartInfo.visibility = View.VISIBLE
+        btnConfirm.isEnabled = true
+        etQty.requestFocus()
     }
 
     private fun confirmReceive() {
@@ -133,7 +175,7 @@ class ReceiveActivity : AppCompatActivity() {
         }
 
         val input = TxnInput(
-            txnType = "IN", // สำคัญ: ประเภทเป็น IN
+            txnType = "IN",
             partId = currentStock?.partId ?: "",
             locId = currentStock?.locId ?: "MAIN",
             qty = qty,
@@ -157,7 +199,7 @@ class ReceiveActivity : AppCompatActivity() {
 
     private fun resetForm() {
         currentStock = null
-        selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        selectedDate = todayString()
         tvTxnDate.text = selectedDate
         layoutPartInfo.visibility = View.GONE
         etQty.text.clear()
@@ -168,8 +210,8 @@ class ReceiveActivity : AppCompatActivity() {
 
     private fun showDatePicker() {
         val picker = MaterialDatePicker.Builder.datePicker().build()
-        picker.addOnPositiveButtonClickListener {
-            selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(it))
+        picker.addOnPositiveButtonClickListener { ms ->
+            selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date(ms))
             tvTxnDate.text = selectedDate
         }
         picker.show(supportFragmentManager, "DATE_PICKER")
@@ -177,6 +219,8 @@ class ReceiveActivity : AppCompatActivity() {
 
     private fun showError(msg: String) = MaterialAlertDialogBuilder(this).setMessage(msg).setPositiveButton("ตกลง", null).show()
     private fun showSuccess(msg: String) = MaterialAlertDialogBuilder(this).setMessage(msg).setPositiveButton("ตกลง", null).show()
+
+    private fun todayString() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) finish()

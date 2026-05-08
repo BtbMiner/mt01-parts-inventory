@@ -23,9 +23,21 @@ object StockRepository {
         WHERE   P.IS_ACTIVE = 1
     """.trimIndent()
 
+    /**
+     * Normalizes input ID: trims and pads with zeros if numeric and length < 4
+     */
+    fun normalizeId(input: String): String {
+        val trimmed = input.trim()
+        return if (trimmed.isNotEmpty() && trimmed.all { it.isDigit() } && trimmed.length < 4) {
+            trimmed.padStart(4, '0')
+        } else {
+            trimmed
+        }
+    }
+
     // -------------------------------------------------------
     // getStockByPartId
-    // ใช้หลัก: scan QR (PART_ID) → ดึง StockInfo
+    // Used for: scan QR (PART_ID) -> returns exact StockInfo
     // -------------------------------------------------------
     suspend fun getStockByPartId(partId: String): StockInfo? = withContext(Dispatchers.IO) {
         var connection: Connection? = null
@@ -48,18 +60,20 @@ object StockRepository {
 
     // -------------------------------------------------------
     // searchStock
-    // fallback: ค้นหาด้วยชื่อหรือ PART_CODE จาก search bar
+    // General keyword search across PART_ID, PART_CODE, PART_NAME
     // -------------------------------------------------------
     suspend fun searchStock(keyword: String): List<StockInfo> = withContext(Dispatchers.IO) {
         val result = mutableListOf<StockInfo>()
         var connection: Connection? = null
         try {
             connection = GetConnection.connection ?: return@withContext result
-            val sql = "$SELECT_STOCK AND (P.PART_NAME LIKE ? OR P.PART_CODE LIKE ?) ORDER BY P.PART_NAME"
+            val cleanKeyword = keyword.trim()
+            val sql = "$SELECT_STOCK AND (S.PART_ID = ? OR P.PART_CODE LIKE ? OR P.PART_NAME LIKE ?) ORDER BY P.PART_NAME"
+            
             connection.prepareStatement(sql).use { ps ->
-                val kw = "%$keyword%"
-                ps.setString(1, kw)
-                ps.setString(2, kw)
+                ps.setString(1, cleanKeyword)
+                ps.setString(2, "%$cleanKeyword%")
+                ps.setString(3, "%$cleanKeyword%")
                 ps.executeQuery().use { rs ->
                     while (rs.next()) result.add(rs.toStockInfo())
                 }
@@ -70,6 +84,37 @@ object StockRepository {
             connection?.close()
         }
         return@withContext result
+    }
+
+    /**
+     * UNIFIED Flexible Search Logic (Used across all Activities)
+     * Step 1: Try exact match with normalized ID (trim + padding)
+     * Step 2: Fallback to keyword search
+     * Returns: Result type wrapping single match or multiple matches
+     */
+    suspend fun searchStockFlexible(input: String): SearchResult = withContext(Dispatchers.IO) {
+        val cleanInput = input.trim()
+        if (cleanInput.isEmpty()) return@withContext SearchResult.Empty
+
+        // Step 1: Try flexible ID match (e.g., "1" -> "0001")
+        val normalizedId = normalizeId(cleanInput)
+        val directMatch = getStockByPartId(normalizedId)
+        if (directMatch != null) return@withContext SearchResult.Single(directMatch)
+
+        // Step 2: Fallback to keyword search (ID, Code, Name)
+        val list = searchStock(cleanInput)
+        return@withContext when {
+            list.isEmpty() -> SearchResult.NotFound
+            list.size == 1 -> SearchResult.Single(list[0])
+            else -> SearchResult.Multiple(list)
+        }
+    }
+
+    sealed class SearchResult {
+        object Empty : SearchResult()
+        object NotFound : SearchResult()
+        data class Single(val stock: StockInfo) : SearchResult()
+        data class Multiple(val list: List<StockInfo>) : SearchResult()
     }
 
     // -------------------------------------------------------

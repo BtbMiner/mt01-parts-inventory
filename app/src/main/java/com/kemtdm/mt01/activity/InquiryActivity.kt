@@ -100,14 +100,18 @@ class InquiryActivity : AppCompatActivity() {
 
     private fun performManualSearch(keyword: String) {
         lifecycleScope.launch {
-            val list = StockRepository.searchStock(keyword)
-            if (list.isEmpty()) {
-                showError("ไม่พบข้อมูลสำหรับ: $keyword")
-                layoutResults.visibility = View.GONE
-            } else if (list.size == 1) {
-                displayStockInfo(list[0])
-            } else {
-                showSelectionDialog(list)
+            when (val result = StockRepository.searchStockFlexible(keyword)) {
+                is StockRepository.SearchResult.Single -> {
+                    displayStockInfo(result.stock)
+                }
+                is StockRepository.SearchResult.Multiple -> {
+                    showSelectionDialog(result.list)
+                }
+                is StockRepository.SearchResult.NotFound -> {
+                    showError("ไม่พบข้อมูลสำหรับ: $keyword")
+                    layoutResults.visibility = View.GONE
+                }
+                else -> {}
             }
         }
     }

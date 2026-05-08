@@ -50,6 +50,39 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="16dp">
 
+                <!-- Inquiry -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_inquiry"
+                    style="?attr/materialCardViewElevatedStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="3dp"
+                    app:cardBackgroundColor="?attr/colorCardBackground">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🔍"
+                            android:textSize="24sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="ค้นหา"
+                            android:textAppearance="?attr/textAppearanceLabelLarge"
+                            android:textColor="?attr/colorPrimary"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Receive -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card_receive"
@@ -57,7 +90,8 @@
                     android:layout_width="0dp"
                     android:layout_height="100dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
+                    android:layout_marginStart="3dp"
+                    android:layout_marginEnd="3dp"
                     app:cardBackgroundColor="?attr/colorCardBackground">
 
                     <LinearLayout

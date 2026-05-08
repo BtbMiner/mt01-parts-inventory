@@ -1,69 +1,51 @@
 ---
-skill: Project Blueprint
-description: Standard architectural blueprint and coding standards for the MT01 Inventory Management System.
-category: Android Development
-tags: [Material3, Kotlin, SQLServer, jTDS, XML]
+project: MT01 Inventory System
+platform: Android (Kotlin + XML)
+architecture: Repository-based (Activity-centric)
+database: Microsoft SQL Server (Direct JDBC via jTDS)
+ui: Material 3 (XML + DayNight Support)
 ---
 
-# Project Blueprint: MT01 Inventory Management
+# 🎨 UI & Theme Design
 
-This blueprint defines the core standards, architectural patterns, and UI systems used in this project to ensure consistency and maintainability.
-
-## 🎨 UI & Theme Design
-
-### Color System & Theming
-- **Material 3 (M3)**: The project is fully migrated to Material 3 using `Theme.Material3.DayNight`.
-- **Semantic Attributes**: Avoid hardcoded colors. Use theme attributes (`?attr/`) to support Light/Dark mode automatically.
-  - **Custom Attributes**: Defined in `attrs.xml` for domain-specific colors:
-    - `colorTxnIn`: Success/Receive transactions.
-    - `colorTxnOut`: Warning/Issue transactions.
-    - `colorTxnReturn`: Information/Return transactions.
-    - `colorPageBackground` & `colorCardBackground`: Layout layering.
-- **Surface Layering**: Use `MaterialCardView` with `?attr/materialCardViewElevatedStyle` for content containers.
+### Color System
+- **Material 3 Usage**: Migrated to `Theme.Material3.DayNight`.
+- **Theme Attributes**: Use `?attr/` for all color references to ensure automatic Light/Dark theme support.
+- **Custom Attributes**: Defined in `attrs.xml` for contextual clarity (e.g., `colorTxnIn`, `colorTxnOut`).
 
 ### Layout Management
-- **XML Layouts**: The project primary uses XML layouts with `CoordinatorLayout` and `NestedScrollView` for flexible, scrollable forms.
-- **Component Consistency**:
-  - **Buttons**: `Widget.Material3.Button` for primary actions, `TonalButton` for secondary.
-  - **Inputs**: `Widget.Material3.TextInputLayout.OutlinedBox` for all form fields.
-  - **Toolbar**: Standardized height (`?attr/actionBarSize`) and background matching the transaction context.
+- **XML-Based**: Traditional XML layouts using `CoordinatorLayout` and `NestedScrollView`.
+- **UX Consistency**: 
+    - Consistent padding (16dp) and component styling across all modules.
+    - **Standardized Search**: Manual search inputs now consistently support flexible matching (ID, Code, Name) and zero-padding.
+    - **Action Feedback**: Uniform use of `MaterialAlertDialogBuilder` for success/error/selection dialogs.
 
-## 🏗 Architecture & Database
+# 🏗 Architecture & Database
 
-### Architecture Patterns
-- **Repository Pattern**: Centralized data access logic in `object` repositories (e.g., `StockRepository`, `TxnRepository`).
-- **Activity-Logic Separation**: Activities handle UI state and user input, while business logic and data processing reside in Repositories.
-- **Concurrency**: All data operations use Kotlin Coroutines with `Dispatchers.IO`.
+### Architecture Pattern
+- **Repository-based**: Business logic and data access are centralized in singleton `object` repositories.
+- **Unified Search Pattern**: 
+    - The `StockRepository.searchStockFlexible()` method consolidates multi-step search logic (Direct ID match -> Keyword fallback).
+    - Activities consume a sealed `SearchResult` class to handle single, multiple, or zero matches consistently.
+- **Data Normalization**: Centralized `normalizeId()` logic ensures numeric inputs (e.g., "1") match database formats (e.g., "0001") across all modules.
 
-### Database Connection
-- **Direct SQL Server Connection**: Uses `net.sourceforge.jtds:jtds` driver to connect directly to Microsoft SQL Server.
-- **Transaction Safety**: 
-  - Manual transaction management using `connection.autoCommit = false`.
-  - Row-level locking with `WITH (UPDLOCK)` to prevent race conditions during stock updates.
-  - Snapshot-based `MT_AUDIT_LOG` for tracking changes.
+### Database & Tables
+- **Connection**: Direct JDBC connection using the `jTDS` driver.
+- **Atomic Operations**: Manual transaction control (`autoCommit = false`) with mandatory `commit()` or `rollback()`.
+- **Concurrency**: Asynchronous data operations powered by Kotlin Coroutines (`lifecycleScope` and `Dispatchers.IO`).
 
-## 🛠 Error Handling & Validation
+# 🛠 Error Handling & Validation
 
-### Error Trapping
-- **SQL Level**: Extensive `try-catch` blocks in repositories capturing `SQLException` with detailed logging (SQLState, ErrorCode).
-- **UI Level**: Use `MaterialAlertDialogBuilder` for user-facing error messages and confirmation dialogs.
-- **Validation**: 
-  - Input validation (e.g., non-zero quantity, stock availability) performed before repository calls.
-  - Soft-validation via `isEnabled` states on buttons.
+### SQL & Transaction Control
+- **Try/Catch**: Global SQL error trapping with detailed logging of `SQLState` and `ErrorCode`.
+- **Locking**: Row-level locking using `WITH (UPDLOCK)` to prevent race conditions.
 
-### Testing
-- **Manual Verification**: Features are verified against live SQL Server data.
-- **Logging**: Heavy use of `Log.d` and `Log.e` with specific tags (e.g., `tagMainActivity`) for runtime debugging.
+### Validation Logic
+- **Input Sanitization**: Uniform use of `.trim()` and `normalizeId()` before database queries to handle leading/trailing spaces and formatting mismatches.
+- **Safe Handling**: Standardized check for empty inputs and "not found" states with appropriate user feedback.
 
-## 📌 Project Constraints
-
-### Specific Rules
-- **Preservation**: Existing working modules (`Receive`, `Issue`, `Return`) must maintain their functional logic.
-- **Role-Based Access**: Logic must differentiate between **Authority** (Admin) and **Normal User** using `SessionManager.isAdmin()`.
-- **Dependency Management**: Centralized via `gradle/libs.versions.toml`.
-
-### Required Libraries
-- **ZXing Android Embedded**: For QR/Barcode scanning functionality.
-- **jTDS**: For legacy SQL Server compatibility.
-- **Material Components**: For M3 UI elements.
-- **Coroutines**: For asynchronous operations.
+# 📌 Project Constraints
+- **Preserve Logic**: Do not break existing transaction logic (Receive/Issue/Return).
+- **Code Reuse**: Centralize logic in Repositories; Activities must not contain raw SQL or complex data transformation logic.
+- **Role-based Access**: Differentiate functionality between **Authority** (Admin) and **Normal User** (Staff).
+- **Theme Support**: All new UI must support both Light and Dark modes via semantic theme attributes.

@@ -57,7 +57,7 @@ class IssueActivity : AppCompatActivity() {
     private val scanLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
         val scanned = result.contents
         if (!scanned.isNullOrBlank()) {
-            loadStock(scanned.trim())
+            loadStockDirect(scanned.trim())
         }
     }
 
@@ -103,18 +103,61 @@ class IssueActivity : AppCompatActivity() {
         btnOpenScanner.setOnClickListener { openScanner() }
 
         btnManualSearch.setOnClickListener {
-            val input = etManualInput.text.toString().trim()
-            if (input.isNotEmpty()) loadStock(input)
+            val input = etManualInput.text.toString()
+            performFlexibleSearch(input)
         }
 
         etManualInput.setOnEditorActionListener { _, _, _ ->
-            val input = etManualInput.text.toString().trim()
-            if (input.isNotEmpty()) loadStock(input)
+            val input = etManualInput.text.toString()
+            performFlexibleSearch(input)
             true
         }
 
         tvTxnDate.setOnClickListener { showDatePicker() }
         btnConfirm.setOnClickListener { doConfirm() }
+    }
+
+    // -------------------------------------------------------
+    // Search Logic
+    // -------------------------------------------------------
+
+    private fun performFlexibleSearch(input: String) {
+        lifecycleScope.launch {
+            when (val result = StockRepository.searchStockFlexible(input)) {
+                is StockRepository.SearchResult.Single -> {
+                    showPartInfo(result.stock)
+                }
+                is StockRepository.SearchResult.Multiple -> {
+                    showSelectionDialog(result.list)
+                }
+                is StockRepository.SearchResult.NotFound -> {
+                    showError("ไม่พบข้อมูลสำหรับ: $input")
+                    layoutPartInfo.visibility = View.GONE
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun showSelectionDialog(list: List<StockInfo>) {
+        val names = list.map { "${it.partName} (${it.partCode})" }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle("เลือกรายการที่ต้องการ")
+            .setItems(names) { _, which ->
+                showPartInfo(list[which])
+            }
+            .show()
+    }
+
+    private fun loadStockDirect(partId: String) {
+        lifecycleScope.launch {
+            val stock = StockRepository.getStockByPartId(partId)
+            if (stock != null) {
+                showPartInfo(stock)
+            } else {
+                showError("ไม่พบ PART ID: $partId")
+            }
+        }
     }
 
     // -------------------------------------------------------
@@ -130,31 +173,8 @@ class IssueActivity : AppCompatActivity() {
         scanLauncher.launch(options)
     }
 
-    // -------------------------------------------------------
-    // Load Stock
-    // -------------------------------------------------------
-
-    private fun loadStock(partId: String) {
-        btnOpenScanner.isEnabled  = false
-        btnConfirm.isEnabled      = false
-        layoutPartInfo.visibility = View.GONE
-
-        lifecycleScope.launch {
-            val stock = StockRepository.getStockByPartId(partId)
-
-            btnOpenScanner.isEnabled = true
-
-            if (stock == null) {
-                showError("ไม่พบ PART ID: $partId")
-                return@launch
-            }
-
-            currentStock = stock
-            showPartInfo(stock)
-        }
-    }
-
     private fun showPartInfo(stock: StockInfo) {
+        currentStock = stock
         tvPartId.text     = stock.partId
         tvPartCode.text   = stock.partCode
         tvPartName.text   = stock.partName

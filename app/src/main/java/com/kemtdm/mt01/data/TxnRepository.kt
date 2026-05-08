@@ -174,6 +174,59 @@ object TxnRepository {
     }
 
     // -------------------------------------------------------
+    // getFilteredTxn
+    // Advanced filtering for HistoryActivity
+    // -------------------------------------------------------
+    suspend fun getFilteredTxn(
+        startDate: String? = null,
+        endDate: String? = null,
+        txnType: String? = null,
+        createdBy: String? = null
+    ): List<TxnRecord> = withContext(Dispatchers.IO) {
+        val result = mutableListOf<TxnRecord>()
+        var connection: Connection? = null
+        try {
+            connection = GetConnection.connection ?: return@withContext result
+
+            val sql = StringBuilder("""
+                SELECT  T.TXN_ID, T.TXN_TYPE, T.PART_ID, T.LOC_ID, T.LOC_FROM, T.LOC_TO,
+                        T.QTY, CONVERT(NVARCHAR(10), T.TXN_DATE, 120) AS TXN_DATE,
+                        T.REMARK, T.CREATED_BY,
+                        CONVERT(NVARCHAR(19), T.CREATED_AT, 120) AS CREATED_AT,
+                        T.DEVICE_INFO,
+                        P.PART_NAME, P.PART_CODE, P.UNIT
+                FROM    MT_TXN T
+                JOIN    MT_PART_ITEM P ON T.PART_ID = P.PART_ID
+                WHERE   1=1
+            """.trimIndent())
+
+            if (!startDate.isNullOrEmpty()) sql.append(" AND T.TXN_DATE >= ?")
+            if (!endDate.isNullOrEmpty()) sql.append(" AND T.TXN_DATE <= ?")
+            if (!txnType.isNullOrEmpty()) sql.append(" AND T.TXN_TYPE = ?")
+            if (!createdBy.isNullOrEmpty()) sql.append(" AND T.CREATED_BY = ?")
+
+            sql.append(" ORDER BY T.CREATED_AT DESC")
+
+            connection.prepareStatement(sql.toString()).use { ps ->
+                var paramIdx = 1
+                if (!startDate.isNullOrEmpty()) ps.setString(paramIdx++, startDate)
+                if (!endDate.isNullOrEmpty()) ps.setString(paramIdx++, endDate)
+                if (!txnType.isNullOrEmpty()) ps.setString(paramIdx++, txnType)
+                if (!createdBy.isNullOrEmpty()) ps.setString(paramIdx++, createdBy)
+
+                ps.executeQuery().use { rs ->
+                    while (rs.next()) result.add(rs.toTxnRecord())
+                }
+            }
+        } catch (e: SQLException) {
+            Log.e(TAG, "getFilteredTxn: ${e.message}", e)
+        } finally {
+            connection?.close()
+        }
+        return@withContext result
+    }
+
+    // -------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------
 
