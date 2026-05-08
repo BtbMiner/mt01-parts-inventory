@@ -22,7 +22,9 @@ import com.kemtdm.mt01.data.StockRepository
 import com.kemtdm.mt01.data.TxnInput
 import com.kemtdm.mt01.data.TxnRepository
 import com.kemtdm.mt01.utils.DeviceUtils
+import com.kemtdm.mt01.utils.QuantitySelectorHandler
 import com.kemtdm.mt01.utils.SessionManager
+import com.google.android.material.button.MaterialButton
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
@@ -45,6 +47,8 @@ class ReceiveActivity : AppCompatActivity() {
     private lateinit var tvTxnDate: TextView
     private lateinit var etRemark: EditText
     private lateinit var btnConfirm: Button
+    
+    private lateinit var qtyHandler: QuantitySelectorHandler
 
     private var currentStock: StockInfo? = null
     private var selectedDate: String = todayString()
@@ -89,7 +93,20 @@ class ReceiveActivity : AppCompatActivity() {
         tvLocId        = findViewById(R.id.tv_loc_id)
         tvUnitDisplay  = findViewById(R.id.tv_unit_display)
         tvCurrentQty   = findViewById(R.id.tv_current_qty)
-        etQty          = findViewById(R.id.et_qty)
+
+        // Qty Selector components
+        val qtyContainer = findViewById<View>(R.id.qty_selector)
+        etQty            = qtyContainer.findViewById(R.id.et_qty)
+        val btnMinus     = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_minus)
+        val btnPlus      = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_plus)
+
+        qtyHandler = QuantitySelectorHandler(etQty, btnMinus, btnPlus, lifecycleScope)
+        qtyHandler.setupShortcuts(
+            qtyContainer.findViewById(R.id.btn_shortcut_1),
+            qtyContainer.findViewById(R.id.btn_shortcut_5),
+            qtyContainer.findViewById(R.id.btn_shortcut_10)
+        )
+
         tvTxnDate      = findViewById(R.id.tv_txn_date)
         etRemark       = findViewById(R.id.et_remark)
         btnConfirm     = findViewById(R.id.btn_confirm)
@@ -179,11 +196,12 @@ class ReceiveActivity : AppCompatActivity() {
         tvCurrentQty.text = "${stock.qtyOnHand.toInt()} ${stock.unit}"
         layoutPartInfo.visibility = View.VISIBLE
         btnConfirm.isEnabled = true
+        qtyHandler.setValue(1.0)
         etQty.requestFocus()
     }
 
     private fun confirmReceive() {
-        val qty = etQty.text.toString().toDoubleOrNull() ?: 0.0
+        val qty = qtyHandler.getValue()
         if (qty <= 0) {
             showError("กรุณากรอกจำนวนที่ถูกต้อง")
             return
@@ -217,7 +235,7 @@ class ReceiveActivity : AppCompatActivity() {
         selectedDate = todayString()
         tvTxnDate.text = selectedDate
         layoutPartInfo.visibility = View.GONE
-        etQty.text.clear()
+        qtyHandler.setValue(1.0)
         etRemark.text.clear()
         etManualInput.text.clear()
         btnConfirm.isEnabled = false

@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.google.android.material.button.MaterialButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -26,6 +27,7 @@ import com.kemtdm.mt01.data.StockRepository
 import com.kemtdm.mt01.data.TxnInput
 import com.kemtdm.mt01.data.TxnRepository
 import com.kemtdm.mt01.utils.DeviceUtils
+import com.kemtdm.mt01.utils.QuantitySelectorHandler
 import com.kemtdm.mt01.utils.SessionManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -53,6 +55,8 @@ class IssueActivity : AppCompatActivity() {
     private lateinit var etRemark: EditText
     private lateinit var tvTxnDate: TextView
     private lateinit var btnConfirm: Button
+    
+    private lateinit var qtyHandler: QuantitySelectorHandler
 
     private var currentStock: StockInfo? = null
     private var selectedDate: String = todayString()
@@ -108,7 +112,20 @@ class IssueActivity : AppCompatActivity() {
         tvLocId        = findViewById(R.id.tv_loc_id)
         tvCurrentQty   = findViewById(R.id.tv_current_qty)
         tvUnit         = findViewById(R.id.tv_unit)
-        etQty          = findViewById(R.id.et_qty)
+        
+        // Qty Selector components from include
+        val qtyContainer = findViewById<View>(R.id.qty_selector)
+        etQty            = qtyContainer.findViewById(R.id.et_qty)
+        val btnMinus     = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_minus)
+        val btnPlus      = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_plus)
+        
+        qtyHandler = QuantitySelectorHandler(etQty, btnMinus, btnPlus, lifecycleScope)
+        qtyHandler.setupShortcuts(
+            qtyContainer.findViewById(R.id.btn_shortcut_1),
+            qtyContainer.findViewById(R.id.btn_shortcut_5),
+            qtyContainer.findViewById(R.id.btn_shortcut_10)
+        )
+
         etRemark       = findViewById(R.id.et_remark)
         tvTxnDate      = findViewById(R.id.tv_txn_date)
         btnConfirm     = findViewById(R.id.btn_confirm)
@@ -199,7 +216,7 @@ class IssueActivity : AppCompatActivity() {
 
         layoutPartInfo.visibility = View.VISIBLE
         btnConfirm.isEnabled      = true
-        etQty.setText("")
+        qtyHandler.setValue(1.0)
         etQty.requestFocus()
     }
 
@@ -226,10 +243,18 @@ class IssueActivity : AppCompatActivity() {
     private fun doConfirm() {
         val stock = currentStock ?: return
 
-        val qty = etQty.text.toString().trim().toDoubleOrNull()
+        val qty = qtyHandler.getValue()
         when {
-            qty == null || qty <= 0 -> { showError("กรุณากรอกจำนวนที่ถูกต้อง"); return }
-            qty > stock.qtyOnHand   -> { showError("จำนวนเบิก (${qty.toInt()}) เกินสต็อกที่มี (${stock.qtyOnHand.toInt()})"); return }
+            qty <= 0 -> { showError("กรุณากรอกจำนวนที่ถูกต้อง"); return }
+            qty > stock.qtyOnHand -> {
+                MaterialAlertDialogBuilder(this)
+                    .setTitle("ยืนยันจำนวนเกินสต็อก")
+                    .setMessage("จำนวนที่เบิก ($qty) มากกว่าจำนวนคงเหลือ (${stock.qtyOnHand.toInt()})\nคุณยังต้องการดำเนินการต่อหรือไม่?")
+                    .setPositiveButton("ดำเนินการต่อ") { _, _ -> saveTxn(stock, qty) }
+                    .setNegativeButton("ยกเลิก", null)
+                    .show()
+                return
+            }
         }
 
         MaterialAlertDialogBuilder(this)
@@ -272,7 +297,7 @@ class IssueActivity : AppCompatActivity() {
         selectedDate              = todayString()
         layoutPartInfo.visibility = View.GONE
         etManualInput.setText("")
-        etQty.setText("")
+        qtyHandler.setValue(1.0)
         etRemark.setText("")
         tvTxnDate.text            = selectedDate
         btnConfirm.isEnabled      = false

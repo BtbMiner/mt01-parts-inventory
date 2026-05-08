@@ -200,34 +200,13 @@
                             android:layout_height="wrap_content"
                             android:layout_marginVertical="12dp" />
 
-                        <LinearLayout
+                        <!-- Hybrid Qty Selector -->
+                        <include
+                            android:id="@+id/qty_selector"
+                            layout="@layout/layout_qty_selector"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:layout_marginEnd="8dp"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                                android:hint="จำนวนรับเข้า">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/et_qty"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:inputType="numberDecimal" />
-                            </com.google.android.material.textfield.TextInputLayout>
-
-                            <TextView
-                                android:id="@+id/tv_unit"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:text="Pcs" />
-                        </LinearLayout>
+                            android:layout_marginBottom="16dp" />
 
                         <TextView
                             android:id="@+id/tv_txn_date"

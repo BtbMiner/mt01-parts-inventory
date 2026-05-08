@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.kemtdm.mt01.R
@@ -25,6 +26,7 @@ import com.kemtdm.mt01.utils.DeviceUtils
 import com.kemtdm.mt01.utils.SessionManager
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import com.kemtdm.mt01.utils.QuantitySelectorHandler
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -46,6 +48,7 @@ class ReturnActivity : AppCompatActivity() {
     private lateinit var etRemark: EditText
     private lateinit var btnConfirm: Button
 
+    private lateinit var qtyHandler: QuantitySelectorHandler
     private var currentStock: StockInfo? = null
     private var selectedDate: String = todayString()
 
@@ -89,7 +92,17 @@ class ReturnActivity : AppCompatActivity() {
         tvLocId = findViewById(R.id.tv_loc_id)
         tvUnit  = findViewById(R.id.tv_unit)
         tvCurrentQty   = findViewById(R.id.tv_current_qty)
-        etQty          = findViewById(R.id.et_qty)
+        val qtyContainer = findViewById<View>(R.id.qty_selector)
+        etQty            = qtyContainer.findViewById(R.id.et_qty)
+        val btnMinus     = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_minus)
+        val btnPlus      = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_plus)
+
+        qtyHandler = QuantitySelectorHandler(etQty, btnMinus, btnPlus, lifecycleScope)
+        qtyHandler.setupShortcuts(
+            qtyContainer.findViewById(R.id.btn_shortcut_1),
+            qtyContainer.findViewById(R.id.btn_shortcut_5),
+            qtyContainer.findViewById(R.id.btn_shortcut_10)
+        )
         tvTxnDate      = findViewById(R.id.tv_txn_date)
         etRemark       = findViewById(R.id.et_remark)
         btnConfirm     = findViewById(R.id.btn_confirm)

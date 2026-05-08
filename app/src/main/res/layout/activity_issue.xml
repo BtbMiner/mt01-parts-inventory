@@ -244,21 +244,13 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <com.google.android.material.textfield.TextInputLayout
+                        <!-- Hybrid Qty Selector -->
+                        <include
+                            android:id="@+id/qty_selector"
+                            layout="@layout/layout_qty_selector"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                            android:hint="จำนวนที่เบิก *">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/et_qty"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="numberDecimal"
-                                android:singleLine="true" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
+                            android:layout_marginBottom="16dp" />
 
                         <TextView
                             android:id="@+id/tv_txn_date"
