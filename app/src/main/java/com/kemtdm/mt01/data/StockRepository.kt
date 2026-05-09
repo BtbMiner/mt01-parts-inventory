@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
 import java.sql.SQLException
+import com.kemtdm.mt01.utils.execQuery
 
 object StockRepository {
 
@@ -20,7 +21,7 @@ object StockRepository {
         FROM    MT_STOCK S
         JOIN    MT_PART_ITEM P ON S.PART_ID = P.PART_ID
         JOIN    MT_LOCATION  L ON S.LOC_ID  = L.LOC_ID
-        WHERE   P.IS_ACTIVE = 1
+        WHERE   1=1
     """.trimIndent()
 
     /**
@@ -44,12 +45,11 @@ object StockRepository {
         try {
             connection = GetConnection.connection ?: return@withContext null
             val sql = "$SELECT_STOCK AND S.PART_ID = ?"
-            connection.prepareStatement(sql).use { ps ->
-                ps.setString(1, partId)
-                ps.executeQuery().use { rs ->
-                    if (rs.next()) return@withContext rs.toStockInfo()
-                }
+
+            return@withContext connection.execQuery(sql, listOf(partId)) { rs ->
+                if (rs.next()) rs.toStockInfo() else null
             }
+
         } catch (e: SQLException) {
             Log.e(TAG, "getStockByPartId: ${e.message}", e)
         } finally {
@@ -68,16 +68,23 @@ object StockRepository {
         try {
             connection = GetConnection.connection ?: return@withContext result
             val cleanKeyword = keyword.trim()
-            val sql = "$SELECT_STOCK AND (S.PART_ID = ? OR P.PART_CODE LIKE ? OR P.PART_NAME LIKE ?) ORDER BY P.PART_NAME"
-            
-            connection.prepareStatement(sql).use { ps ->
-                ps.setString(1, cleanKeyword)
-                ps.setString(2, "%$cleanKeyword%")
-                ps.setString(3, "%$cleanKeyword%")
-                ps.executeQuery().use { rs ->
-                    while (rs.next()) result.add(rs.toStockInfo())
-                }
+
+            val sql = """
+                            $SELECT_STOCK 
+                            AND (S.PART_ID = ? OR P.PART_CODE LIKE ? OR P.PART_NAME LIKE ?)
+                            ORDER BY P.PART_NAME
+                        """.trimIndent()
+
+            return@withContext connection.execQuery(
+                sql,
+                listOf(cleanKeyword, "%$cleanKeyword%", "%$cleanKeyword%")
+            ) { rs ->
+
+                val list = mutableListOf<StockInfo>()
+                while (rs.next()) list.add(rs.toStockInfo())
+                list
             }
+
         } catch (e: SQLException) {
             Log.e(TAG, "searchStock: ${e.message}", e)
         } finally {
@@ -98,6 +105,10 @@ object StockRepository {
 
         // Step 1: Try flexible ID match (e.g., "1" -> "0001")
         val normalizedId = normalizeId(cleanInput)
+
+        Log.d(TAG, "searchStockFlexible input = '$input'")
+        Log.d(TAG, "normalizedId = '$normalizedId'")
+
         val directMatch = getStockByPartId(normalizedId)
         if (directMatch != null) return@withContext SearchResult.Single(directMatch)
 
@@ -125,12 +136,15 @@ object StockRepository {
         var connection: Connection? = null
         try {
             connection = GetConnection.connection ?: return@withContext result
+
             val sql = "$SELECT_STOCK AND S.QTY_ON_HAND < P.MIN_STOCK ORDER BY S.QTY_ON_HAND ASC"
-            connection.prepareStatement(sql).use { ps ->
-                ps.executeQuery().use { rs ->
-                    while (rs.next()) result.add(rs.toStockInfo())
-                }
+
+            return@withContext connection.execQuery(sql) { rs ->
+                val list = mutableListOf<StockInfo>()
+                while (rs.next()) list.add(rs.toStockInfo())
+                list
             }
+
         } catch (e: SQLException) {
             Log.e(TAG, "getLowStockList: ${e.message}", e)
         } finally {

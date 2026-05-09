@@ -1,3 +1,9 @@
+@file:Suppress("UnstableApiUsage")
+
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -33,6 +39,36 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val appName = "AD07"
+        val date = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(Date())
+        val buildTypeName = variant.buildType ?: variant.name
+
+        // Set the output file name for the APK
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("${appName}-${date}.apk")
+        }
+
+        // Keep the copy task for convenience (moves APK to a predictable folder)
+        val capitalizedVariantName = variant.name.replaceFirstChar { it.uppercase() }
+        val renameTask = tasks.register<Copy>("copy${capitalizedVariantName}Apk") {
+            val apkFolder = variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.APK)
+            from(apkFolder)
+            include("*.apk")
+            destinationDir = file("${project.layout.buildDirectory.get()}/outputs/custom-apk")
+            
+            doLast {
+                println("APK also copied to: ${destinationDir.absolutePath}")
+            }
+        }
+
+        tasks.matching { it.name == "assemble$capitalizedVariantName" }.configureEach {
+            finalizedBy(renameTask)
+        }
     }
 }
 

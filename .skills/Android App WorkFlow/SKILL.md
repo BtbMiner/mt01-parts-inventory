@@ -99,3 +99,89 @@ private fun startScan() {
 - Store `UserID`, `UserName`, and `IsAdmin` in `SharedPreferences` via `SessionManager`.
 - Check `SessionManager.isAdmin(context)` before allowing access to Authority-only features (e.g., Receive module, detailed logs).
 - Implement session timeout checks on app launch or `onResume`.
+
+---
+
+## 🏗 Build Configuration
+
+### APK Renaming (The Modern Way)
+Directly renaming APKs in modern AGP (8.0+) requires using the `variant.outputs` API within `androidComponents.onVariants`. This ensures the **primary artifact** itself is renamed, rather than just creating a copy.
+
+#### ⚠️ AGP Status: Still "Incubating"
+As of AGP 8.x, the `outputFileName` property remains marked as `@Incubating`. While technically "unstable" by Google's definition, it is the **only official way** to rename the output file without resorting to external shell scripts or manual renaming.
+
+```kotlin
+// In app/build.gradle.kts
+@file:Suppress("UnstableApiUsage") // Required for outputFileName
+
+androidComponents {
+    onVariants { variant ->
+        val appName = "AD07"
+        val date = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(Date())
+        val buildTypeName = variant.buildType ?: variant.name
+
+        // ✅ Correct way to rename the ACTUAL output artifact
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("${appName}-${buildTypeName}-${date}.apk")
+        }
+        
+        // Optional: Copy to a specialized folder for CI/CD
+        val capitalizedVariantName = variant.name.replaceFirstChar { it.uppercase() }
+        val copyTask = tasks.register<Copy>("copy${capitalizedVariantName}Apk") {
+            val apkFolder = variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.APK)
+            from(apkFolder)
+            include("*.apk")
+            destinationDir = file("${project.layout.buildDirectory.get()}/outputs/custom-apk")
+        }
+        
+        tasks.matching { it.name == "assemble$capitalizedVariantName" }.configureEach {
+            finalizedBy(copyTask)
+        }
+    }
+}
+```
+
+#### Root Cause: Why Copy Tasks alone fail
+- A `Copy` task runs **after** the APK is generated.
+- It creates a **new file** with the new name but leaves the **original artifact** (e.g., `app-debug.apk`) unchanged in its default location.
+- Tools like Android Studio, Firebase App Distribution, or Play Console look at the **Artifact API metadata**, which still points to the original name if you only use a `Copy` task.
+
+#### Comparison: Artifact Transforms vs. Copy Tasks
+| Feature | `variant.outputs` (Renaming) | `Copy` Task |
+| :--- | :--- | :--- |
+| **Artifact Integrity** | Changes the actual name known to Gradle/AGP. | Creates a disconnected copy. |
+| **Tooling Support** | Android Studio "Locate APK" uses the new name. | Studio still points to the old name. |
+| **Stability** | Incubating (requires `@Suppress`). | Stable. |
+| **Complexity** | Low (internal to AGP). | Medium (requires custom task & lifecycle hook). |
+
+#### 🐘 Gradle: Safe Task Configuration
+When working with the Android Gradle Plugin (AGP), referencing tasks during the configuration phase requires caution.
+
+#### Root Cause: `UnknownTaskException`
+The `androidComponents.onVariants` block executes during the configuration phase, but often **before** the Android Gradle Plugin has finished registering standard tasks like `assembleDebug` or `assembleRelease`.
+- `tasks.named("name")`: Immediately searches for a task with that name. If the task hasn't been registered yet by AGP, it throws an `UnknownTaskException`.
+- `tasks.matching { ... }.configureEach`: Creates a live collection that Gradle monitors. Whenever a task matching the criteria is registered (even later in the configuration phase), the configuration block is executed safely.
+
+#### Fix Summary
+1.  **Renaming**: Used `variant.outputs.forEach { it.outputFileName.set(...) }` to modify the primary artifact.
+2.  **Safety**: Used `tasks.matching().configureEach` to hook the `assemble` task without causing configuration-time crashes.
+
+**Best Practice:**
+1.  Use `variant.outputs` to rename the actual APK so it integrates with Android Studio and other tools.
+2.  Use `tasks.matching { ... }.configureEach` when you need to hook into AGP-generated tasks like `assemble`.
+3.  Avoid `applicationVariants.all` as it is deprecated and doesn't work well with the newer Artifacts API.
+
+---
+
+### Stable vs Incubating APIs
+| API | Status | Recommendation |
+| :--- | :--- | :--- |
+| `applicationVariants` | **Deprecated** | Do not use; replaced by `androidComponents`. |
+| `variant.outputs` | **Incubating** | Functional and necessary for renaming; use with `@Suppress`. |
+| `Artifacts` (SingleArtifact.APK) | **Stable** | Best practice for accessing build outputs for copying. |
+| `base.archivesName` | **Stable** | Good for setting a global prefix, but cannot handle per-variant timestamps easily. |
+
+**Key Best Practices:**
+- **Prefer Copy Tasks**: Renaming "in-place" often breaks Gradle's build caching. Copying to a separate directory (e.g., `/outputs/renamed-apk`) is safer.
+- **Lazy Configuration**: Always use `tasks.register` instead of `tasks.create`.
+- **Avoid Internal Classes**: Never cast to `com.android.build.gradle.internal.*`.

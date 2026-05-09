@@ -2,6 +2,9 @@ package com.kemtdm.mt01.data
 
 import android.util.Log
 import com.kemtdm.mt01.sql.GetConnection
+import com.kemtdm.mt01.utils.execInsert
+import com.kemtdm.mt01.utils.execQuery
+import com.kemtdm.mt01.utils.execUpdate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.sql.Connection
@@ -110,18 +113,58 @@ object TxnRepository {
                 next = next.nextException
             }
 
+            Log.w(TAG, "Transaction ROLLBACK (saveTxn)")
             connection?.rollback()
             false
 
         } catch (e: Exception) {
 
             Log.e(TAG, "=== GENERAL ERROR === ${e.message}", e)
-
+            Log.w(TAG, "Transaction ROLLBACK (saveTxn)")
             connection?.rollback()
             false
 
         } finally {
             connection?.autoCommit = true
+            connection?.close()
+        }
+    }
+
+    suspend fun getTodayTxn(
+        partId: String? = null,
+        createdBy: String? = null
+    ): List<TxnRecord> = withContext(Dispatchers.IO) {
+
+        var connection: Connection? = null
+
+        try {
+            connection = GetConnection.connection ?: return@withContext emptyList()
+
+            val sql = """
+            SELECT  T.TXN_ID, T.TXN_TYPE, T.PART_ID, T.LOC_ID, T.LOC_FROM, T.LOC_TO,
+                    T.QTY, CONVERT(NVARCHAR(10), T.TXN_DATE, 120) AS TXN_DATE,
+                    T.REMARK, T.CREATED_BY,
+                    CONVERT(NVARCHAR(19), T.CREATED_AT, 120) AS CREATED_AT,
+                    T.DEVICE_INFO,
+                    P.PART_NAME, P.PART_CODE, P.UNIT
+            FROM    MT_TXN T
+            JOIN    MT_PART_ITEM P ON T.PART_ID = P.PART_ID
+            WHERE   T.TXN_DATE >= CAST(GETDATE() AS DATE)
+            AND     (? IS NULL OR T.PART_ID = ?)
+            AND     (? IS NULL OR T.CREATED_BY = ?)
+            ORDER BY T.CREATED_AT DESC
+        """.trimIndent()
+
+            return@withContext connection.execQuery(
+                sql,
+                listOf(partId, partId, createdBy, createdBy)
+            ) { rs ->
+                val list = mutableListOf<TxnRecord>()
+                while (rs.next()) list.add(rs.toTxnRecord())
+                list
+            }
+
+        } finally {
             connection?.close()
         }
     }
@@ -157,14 +200,17 @@ object TxnRepository {
                 ORDER BY T.CREATED_AT DESC
             """.trimIndent()
 
-            connection.prepareStatement(sql).use { ps ->
-                ps.setInt(1, limitDays)
-                ps.setString(2, partId);  ps.setString(3, partId)
-                ps.setString(4, createdBy); ps.setString(5, createdBy)
-                ps.executeQuery().use { rs ->
-                    while (rs.next()) result.add(rs.toTxnRecord())
-                }
+
+            return@withContext connection.execQuery(
+                sql,
+                listOf(limitDays, partId, partId, createdBy,createdBy)
+            ) { rs ->
+
+                val list = mutableListOf<TxnRecord>()
+                while (rs.next()) list.add(rs.toTxnRecord())
+                list
             }
+
         } catch (e: SQLException) {
             Log.e(TAG, "getRecentTxn: ${e.message}", e)
         } finally {
@@ -199,25 +245,39 @@ object TxnRepository {
                 JOIN    MT_PART_ITEM P ON T.PART_ID = P.PART_ID
                 WHERE   1=1
             """.trimIndent())
+            val params = mutableListOf<Any?>()
 
-            if (!startDate.isNullOrEmpty()) sql.append(" AND T.TXN_DATE >= ?")
-            if (!endDate.isNullOrEmpty()) sql.append(" AND T.TXN_DATE <= ?")
-            if (!txnType.isNullOrEmpty()) sql.append(" AND T.TXN_TYPE = ?")
-            if (!createdBy.isNullOrEmpty()) sql.append(" AND T.CREATED_BY = ?")
+            if (!startDate.isNullOrEmpty()) {
+                sql.append(" AND T.TXN_DATE >= ?")
+                params.add(startDate)
+            }
+
+            if (!endDate.isNullOrEmpty()) {
+                sql.append(" AND T.TXN_DATE <= ?")
+                params.add(endDate)
+            }
+
+            if (!txnType.isNullOrEmpty()) {
+                sql.append(" AND T.TXN_TYPE = ?")
+                params.add(txnType)
+            }
+
+            if (!createdBy.isNullOrEmpty()) {
+                sql.append(" AND T.CREATED_BY = ?")
+                params.add(createdBy)
+            }
 
             sql.append(" ORDER BY T.CREATED_AT DESC")
 
-            connection.prepareStatement(sql.toString()).use { ps ->
-                var paramIdx = 1
-                if (!startDate.isNullOrEmpty()) ps.setString(paramIdx++, startDate)
-                if (!endDate.isNullOrEmpty()) ps.setString(paramIdx++, endDate)
-                if (!txnType.isNullOrEmpty()) ps.setString(paramIdx++, txnType)
-                if (!createdBy.isNullOrEmpty()) ps.setString(paramIdx++, createdBy)
-
-                ps.executeQuery().use { rs ->
-                    while (rs.next()) result.add(rs.toTxnRecord())
-                }
+            return@withContext connection.execQuery(
+                sql.toString(),
+                params
+            ) { rs ->
+                val list = mutableListOf<TxnRecord>()
+                while (rs.next()) list.add(rs.toTxnRecord())
+                list
             }
+
         } catch (e: SQLException) {
             Log.e(TAG, "getFilteredTxn: ${e.message}", e)
         } finally {
@@ -231,20 +291,17 @@ object TxnRepository {
     // -------------------------------------------------------
 
     private fun getCurrentStock(connection: Connection, partId: String): Pair<Double, String>? {
-        connection.prepareStatement(
-            "SELECT QTY_ON_HAND, LOC_ID FROM MT_STOCK WITH (UPDLOCK) WHERE PART_ID = ?"
-        ).use { ps ->
-            ps.setString(1, partId)
-            ps.executeQuery().use { rs ->
-                if (rs.next()) {
-                    return Pair(
-                        rs.getDouble("QTY_ON_HAND"),
-                        rs.getString("LOC_ID")
-                    )
-                }
-            }
+
+        val sql = "SELECT QTY_ON_HAND, LOC_ID FROM MT_STOCK WITH (UPDLOCK) WHERE PART_ID = ?"
+
+        return connection.execQuery(sql, listOf(partId)) { rs ->
+            if (rs.next()) {
+                Pair(
+                    rs.getDouble("QTY_ON_HAND"),
+                    rs.getString("LOC_ID")
+                )
+            } else null
         }
-        return null
     }
 
 
@@ -262,58 +319,38 @@ object TxnRepository {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """.trimIndent()
 
-        connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS).use { ps ->
+        val params = listOf(
+            input.txnType,
+            input.partId,
+            input.locId,
+            locFrom,
+            locTo,
+            input.qty,
+            input.txnDate,
+            input.remark,
+            input.createdBy,
+            input.deviceInfo
+        )
 
-            ps.setString(1, input.txnType)
-            ps.setString(2, input.partId)
-            ps.setString(3, input.locId)
-
-            if (locFrom == null) ps.setNull(4, java.sql.Types.VARCHAR)
-            else ps.setString(4, locFrom)
-
-            if (locTo == null) ps.setNull(5, java.sql.Types.VARCHAR)
-            else ps.setString(5, locTo)
-
-            ps.setDouble(6, input.qty)
-            ps.setString(7, input.txnDate)
-            ps.setString(8, input.remark)
-            ps.setString(9, input.createdBy)
-            ps.setString(10, input.deviceInfo)
-
-            val affected = ps.executeUpdate()
-
-            if (affected == 0) {
-                Log.e(TAG, "Insert failed: 0 rows affected")
-                return null
+        return connection.execInsert(sql, params) { keys ->
+            if (keys != null && keys.next()) {
+                keys.getInt(1)
+            } else {
+                Log.e(TAG, "Insert ok but no generated key")
+                null
             }
-
-
-            val rs = ps.generatedKeys
-            if (rs.next()) {
-                return rs.getInt(1)
-            }
-
-            if (!rs.next()) {
-                Log.e(TAG, "Insert ok but no generated key returned")
-            }
-
         }
-
-
-        return null
     }
 
-
-
-
     private fun updateStock(connection: Connection, partId: String, newQty: Double) {
-        connection.prepareStatement(
-            "UPDATE MT_STOCK SET QTY_ON_HAND = ?, LAST_UPDATED = GETDATE() WHERE PART_ID = ?"
-        ).use { ps ->
-            ps.setDouble(1, newQty)
-            ps.setString(2, partId)
-            ps.executeUpdate()
-        }
+
+        val sql = """
+        UPDATE MT_STOCK 
+        SET QTY_ON_HAND = ?, LAST_UPDATED = GETDATE() 
+        WHERE PART_ID = ?
+    """.trimIndent()
+
+        connection.execUpdate(sql, listOf(newQty, partId))
     }
 
     private fun insertAuditLog(
@@ -325,17 +362,17 @@ object TxnRepository {
         newValue: String?,
         deviceInfo: String?
     ) {
-        connection.prepareStatement(
-            "INSERT INTO MT_AUDIT_LOG (TXN_ID, ACTION, CHANGED_BY, OLD_VALUE, NEW_VALUE, DEVICE_INFO) VALUES (?,?,?,?,?,?)"
-        ).use { ps ->
-            ps.setInt(1, txnId)
-            ps.setString(2, action)
-            ps.setString(3, changedBy)
-            ps.setString(4, oldValue)
-            ps.setString(5, newValue)
-            ps.setString(6, deviceInfo)
-            ps.executeUpdate()
-        }
+
+        val sql = """
+        INSERT INTO MT_AUDIT_LOG 
+        (TXN_ID, ACTION, CHANGED_BY, OLD_VALUE, NEW_VALUE, DEVICE_INFO)
+        VALUES (?,?,?,?,?,?)
+    """.trimIndent()
+
+        connection.execUpdate(
+            sql,
+            listOf(txnId, action, changedBy, oldValue, newValue, deviceInfo)
+        )
     }
 
     private fun java.sql.ResultSet.toTxnRecord() = TxnRecord(

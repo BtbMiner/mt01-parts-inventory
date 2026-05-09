@@ -150,11 +150,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun loadRecentTxn() {
-        // Normal user เห็นเฉพาะของตัวเอง, Admin เห็นทั้งหมด
         val userId = if (SessionManager.isAdmin(this)) null
         else SessionManager.getUserId(this)
-
-        val list = TxnRepository.getRecentTxn(createdBy = userId, limitDays = 1)
+        val list = TxnRepository.getTodayTxn()
 
         if (list.isEmpty()) {
             rvRecentTxn.visibility       = View.GONE

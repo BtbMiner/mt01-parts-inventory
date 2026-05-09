@@ -126,7 +126,7 @@ class HistoryActivity : AppCompatActivity() {
                 startDate = startDate,
                 endDate   = endDate,
                 txnType   = selectedType,
-                createdBy = userIdFilter
+                createdBy = null
             )
 
             progressBar.visibility = View.GONE
