@@ -75,7 +75,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ค้นหา"
+                            android:text="@string/menu_inquiry"
                             android:textAppearance="?attr/textAppearanceLabelLarge"
                             android:textColor="?attr/colorPrimary"
                             android:textStyle="bold" />
@@ -109,7 +109,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="รับเข้า"
+                            android:text="@string/menu_receive"
                             android:textAppearance="?attr/textAppearanceLabelLarge"
                             android:textColor="?attr/colorTxnIn"
                             android:textStyle="bold" />
@@ -143,7 +143,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="เบิกออก"
+                            android:text="@string/menu_issue"
                             android:textAppearance="?attr/textAppearanceLabelLarge"
                             android:textColor="?attr/colorTxnOut"
                             android:textStyle="bold" />
@@ -176,7 +176,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="คืนของ"
+                            android:text="@string/menu_return"
                             android:textAppearance="?attr/textAppearanceLabelLarge"
                             android:textColor="?attr/colorTxnReturn"
                             android:textStyle="bold" />
@@ -197,7 +197,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="⚠️ รายการที่ต้องเติม"
+                    android:text="@string/low_stock_title"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorTextPrimary" />
 
@@ -216,7 +216,7 @@
                 android:id="@+id/tv_empty_low_stock"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ไม่มีรายการที่ต้องเติม ✅"
+                android:text="@string/no_data"
                 android:textColor="?attr/colorTextSecondary"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:layout_marginBottom="16dp"
@@ -233,7 +233,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="🕐 รายการวันนี้"
+                android:text="@string/recent_txn_title"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorTextPrimary"
                 android:layout_marginBottom="8dp" />
@@ -242,7 +242,7 @@
                 android:id="@+id/tv_empty_recent_txn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="ยังไม่มีรายการวันนี้"
+                android:text="@string/no_data"
                 android:textColor="?attr/colorTextSecondary"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:visibility="gone" />

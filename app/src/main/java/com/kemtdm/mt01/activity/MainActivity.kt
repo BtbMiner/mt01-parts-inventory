@@ -1,5 +1,6 @@
 package com.kemtdm.mt01.activity
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -27,10 +28,15 @@ import com.kemtdm.mt01.data.StockRepository
 import com.kemtdm.mt01.data.StockStatus
 import com.kemtdm.mt01.data.TxnRecord
 import com.kemtdm.mt01.data.TxnRepository
+import com.kemtdm.mt01.utils.LanguageManager
 import com.kemtdm.mt01.utils.SessionManager
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageManager.applyLocale(newBase))
+    }
 
     private val TAG = "tagMainActivity"
 
@@ -80,7 +86,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // รีโหลดทุกครั้งที่กลับมาจากหน้า Receive/Issue/Return
         loadDashboard()
     }
 
@@ -105,7 +110,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         val userName = SessionManager.getUserName(this)
-        tvWelcome.text = "สวัสดี, $userName"
+        tvWelcome.text = getString(R.string.welcome_user, userName)
     }
 
     private fun setupShortcutButtons() {
@@ -185,8 +190,29 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, HistoryActivity::class.java))
                 true
             }
+            R.id.action_language -> {
+                showLanguageDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showLanguageDialog() {
+        val items = arrayOf("English", "ไทย")
+        val currentLang = LanguageManager.loadLanguage(this)
+        val checkedItem = if (currentLang == "th") 1 else 0
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.language_switch)
+            .setSingleChoiceItems(items, checkedItem) { dialog, which ->
+                val selectedLang = if (which == 1) "th" else "en"
+                LanguageManager.saveLanguage(this, selectedLang)
+                dialog.dismiss()
+                recreate()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     /**
@@ -194,14 +220,14 @@ class MainActivity : AppCompatActivity() {
      */
     private fun showLogoutConfirmationDialog() {
         AlertDialog.Builder(this)
-            .setTitle("ยืนยันการออกจากระบบ")
-            .setMessage("คุณต้องการออกจากระบบใช่หรือไม่?")
-            .setPositiveButton("ตกลง") { _, _ ->
+            .setTitle(R.string.logout_confirm_title)
+            .setMessage(R.string.logout_confirm_message)
+            .setPositiveButton(R.string.confirm) { _, _ ->
                 SessionManager.clearSession(this)
                 startActivity(Intent(this, LoginActivity::class.java))
                 finish()
             }
-            .setNegativeButton("ยกเลิก", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 }
@@ -237,15 +263,15 @@ class LowStockAdapter(private val items: List<StockInfo>) :
         val ctx = holder.itemView.context
         when (item.stockStatus) {
             StockStatus.OUT -> {
-                holder.tvStatus.text = "หมด"
+                holder.tvStatus.text = ctx.getString(R.string.stock_out)
                 holder.tvStatus.setTextColor(MaterialColors.getColor(ctx, R.attr.colorStatusOut, ctx.getColor(R.color.red_disabled)))
             }
             StockStatus.LOW -> {
-                holder.tvStatus.text = "ใกล้หมด"
+                holder.tvStatus.text = ctx.getString(R.string.stock_low)
                 holder.tvStatus.setTextColor(MaterialColors.getColor(ctx, R.attr.colorStatusLow, ctx.getColor(R.color.orange_500)))
             }
             StockStatus.NORMAL -> {
-                holder.tvStatus.text = "ปกติ"
+                holder.tvStatus.text = ctx.getString(R.string.stock_normal)
                 holder.tvStatus.setTextColor(MaterialColors.getColor(ctx, R.attr.colorTxnIn, ctx.getColor(android.R.color.holo_green_dark)))
             }
         }
@@ -280,9 +306,9 @@ class RecentTxnAdapter(private val items: List<TxnRecord>) :
         val ctx  = holder.itemView.context
 
         val (label, color) = when (item.txnType) {
-            "IN"  -> Pair("รับเข้า", MaterialColors.getColor(ctx, R.attr.colorTxnIn, ctx.getColor(android.R.color.holo_green_dark)))
-            "OUT" -> Pair("เบิก",   MaterialColors.getColor(ctx, R.attr.colorTxnOut, ctx.getColor(R.color.orange_500)))
-            "RET" -> Pair("คืน",    MaterialColors.getColor(ctx, R.attr.colorTxnReturn, ctx.getColor(R.color.blue_primary)))
+            "IN"  -> Pair(ctx.getString(R.string.txn_in), MaterialColors.getColor(ctx, R.attr.colorTxnIn, ctx.getColor(android.R.color.holo_green_dark)))
+            "OUT" -> Pair(ctx.getString(R.string.txn_out),   MaterialColors.getColor(ctx, R.attr.colorTxnOut, ctx.getColor(R.color.orange_500)))
+            "RET" -> Pair(ctx.getString(R.string.txn_ret),    MaterialColors.getColor(ctx, R.attr.colorTxnReturn, ctx.getColor(R.color.blue_primary)))
             else  -> Pair(item.txnType, MaterialColors.getColor(ctx, R.attr.colorTextSecondary, ctx.getColor(R.color.grey_text)))
         }
 

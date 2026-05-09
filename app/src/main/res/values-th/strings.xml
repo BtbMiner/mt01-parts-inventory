@@ -1,0 +1,63 @@
+<resources>
+    <string name="app_name">Parts Inventory</string>
+    <string name="kcop">KCOP</string>
+    <string name="action_settings">ตั้งค่า</string>
+    <string name="action_history">ประวัติรายการ</string>
+    <string name="action_logout">ออกจากระบบ</string>
+
+    <string name="welcome_user">สวัสดี, %1$s</string>
+    <string name="low_stock_title">⚠️ รายการที่ต้องเติม</string>
+    <string name="recent_txn_title">🕐 รายการวันนี้</string>
+    <string name="no_data">ไม่พบข้อมูล</string>
+
+    <string name="menu_inquiry">ค้นหา</string>
+    <string name="menu_receive">รับเข้า</string>
+    <string name="menu_issue">เบิกออก</string>
+    <string name="menu_return">คืนของ</string>
+
+    <string name="txn_in">รับเข้า</string>
+    <string name="txn_out">เบิก</string>
+    <string name="txn_ret">คืน</string>
+
+    <string name="stock_out">หมด</string>
+    <string name="stock_low">ใกล้หมด</string>
+    <string name="stock_normal">ปกติ</string>
+
+    <string name="app_login_title">Parts Inventory</string>
+    <string name="login_kcop_auth">KCOP Authentication</string>
+    <string name="login_button">เข้าสู่ระบบ</string>
+    <string name="login_username">ชื่อผู้ใช้</string>
+    <string name="login_password">รหัสผ่าน</string>
+    <string name="login_error_empty">กรุณากรอกชื่อผู้ใช้และรหัสผ่าน</string>
+    <string name="login_error_invalid">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</string>
+    <string name="login_error_connection">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</string>
+    <string name="login_error_general">เกิดข้อผิดพลาดในการตรวจสอบ</string>
+    <string name="login_error_location_required">ไม่สามารถเข้าสู่ระบบได้! ต้องได้รับอนุญาตตำแหน่ง</string>
+    <string name="login_success">เข้าสู่ระบบสำเร็จ</string>
+
+    <string name="server_ip_format">Server IP: %1$s</string>
+    <string name="database_name_format">Database: %1$s</string>
+
+    <string name="verification_title">ยืนยันตัวตน</string>
+    <string name="verification_hint">กรอกรหัสผ่านเพื่อเข้าถึงการตั้งค่า</string>
+    <string name="verification_error">รหัสผ่านไม่ถูกต้อง</string>
+
+    <string name="connection_settings_title">ตั้งค่าการเชื่อมต่อ</string>
+    <string name="settings_saved_success">บันทึกการตั้งค่าแล้ว</string>
+    <string name="settings_server_ip">Server IP</string>
+    <string name="settings_server_port">Server Port</string>
+    <string name="settings_db_name">Database Name</string>
+    <string name="settings_error_incomplete">กรุณากรอกข้อมูลให้ครบถ้วน</string>
+
+    <string name="logout_confirm_title">ยืนยันการออกจากระบบ</string>
+    <string name="logout_confirm_message">คุณต้องการออกจากระบบหรือไม่?</string>
+    <string name="logout_button">ออกจากระบบ</string>
+
+    <string name="language_switch">เปลี่ยนภาษา</string>
+    <string name="confirm">ตกลง</string>
+    <string name="cancel">ยกเลิก</string>
+    <string name="save">บันทึก</string>
+
+    <string name="permission_location_rationale">ต้องอนุญาตตำแหน่งเพื่อยืนยันจุดตรวจสอบ กรุณากด \'อนุญาต\'</string>
+    <string name="permission_location_manual">ไม่สามารถขอสิทธิ์ได้ กรุณาไปที่ตั้งค่าเพื่ออนุญาตสิทธิ์ตำแหน่งด้วยตนเอง</string>
+</resources>

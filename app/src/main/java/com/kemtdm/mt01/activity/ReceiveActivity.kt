@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ReceiveActivity : AppCompatActivity() {
+class ReceiveActivity : BaseActivity() {
 
     private lateinit var btnOpenScanner: Button
     private lateinit var etManualInput: EditText
@@ -78,7 +78,7 @@ class ReceiveActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
-            title = "รับของเข้า (Receive)"
+            title = getString(R.string.menu_receive)
             setDisplayHomeAsUpEnabled(true)
         }
     }

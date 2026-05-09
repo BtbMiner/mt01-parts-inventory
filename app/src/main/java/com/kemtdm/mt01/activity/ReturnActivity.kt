@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ReturnActivity : AppCompatActivity() {
+class ReturnActivity : BaseActivity() {
 
     private lateinit var btnOpenScanner: Button
     private lateinit var etManualInput: EditText
@@ -77,7 +77,7 @@ class ReturnActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
-            title = "คืนของ (Return)"
+            title = getString(R.string.menu_return)
             setDisplayHomeAsUpEnabled(true)
         }
     }

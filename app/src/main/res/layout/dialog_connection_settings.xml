@@ -14,7 +14,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Server IP">
+            android:hint="@string/settings_server_ip">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/ip_edit_text"
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Server Port">
+            android:hint="@string/settings_server_port">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/port_edit_text"
@@ -42,7 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Database Name">
+            android:hint="@string/settings_db_name">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/db_edit_text"
@@ -56,7 +56,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Username">
+            android:hint="@string/login_username">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/user_edit_text"
@@ -70,7 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:hint="Password"
+            android:hint="@string/login_password"
             app:passwordToggleEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText

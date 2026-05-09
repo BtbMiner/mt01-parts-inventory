@@ -1,8 +1,8 @@
 package com.kemtdm.mt01.activity
 
+import android.content.Context
 import android.content.Intent
 import android.Manifest
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.kemtdm.mt01.databinding.ActivityLoginBinding
@@ -26,15 +26,20 @@ import com.google.android.material.textfield.TextInputEditText
 import com.kemtdm.mt01.R
 import com.kemtdm.mt01.sql.GetConnection
 import com.kemtdm.mt01.sql.SqlConnectionVariable
+import com.kemtdm.mt01.utils.LanguageManager
 import java.sql.Connection
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
     private lateinit var binding: ActivityLoginBinding
     private val logTAG = "tagLoginActivity"
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LanguageManager.applyLocale(newBase))
+    }
+
     private val requestPermissionLauncher =
         registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
+            ActivityResultContracts.RequestPermission(),
         ) { isGranted: Boolean ->
             handlePermissionResult(isGranted)
         }
@@ -67,7 +72,7 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.passwordEditText.text.toString()
 
             if (userId.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this@LoginActivity, "กรุณากรอกชื่อผู้ใช้และรหัสผ่าน", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@LoginActivity, R.string.login_error_empty, Toast.LENGTH_SHORT).show()
                 Log.d(logTAG, "Username or password is empty.")
             } else {
                 Log.d(logTAG, "Starting authentication for user: $userId")
@@ -80,13 +85,13 @@ class LoginActivity : AppCompatActivity() {
                                 handleLoginSuccess()
                             }
                             AuthenticationResult.InvalidCredentials -> {
-                                Toast.makeText(this@LoginActivity, "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@LoginActivity, R.string.login_error_invalid, Toast.LENGTH_SHORT).show()
                             }
                             AuthenticationResult.ConnectionError -> {
-                                Toast.makeText(this@LoginActivity, "ไม่สามารถเชื่อมต่อฐานข้อมูลได้", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@LoginActivity, R.string.login_error_connection, Toast.LENGTH_LONG).show()
                             }
                             AuthenticationResult.Error -> {
-                                Toast.makeText(this@LoginActivity, "เกิดข้อผิดพลาดในการตรวจสอบ", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this@LoginActivity, R.string.login_error_general, Toast.LENGTH_LONG).show()
                             }
                         }
                     }
@@ -113,7 +118,7 @@ class LoginActivity : AppCompatActivity() {
         val margin = (16 * resources.displayMetrics.density).toInt()
         layoutParams.setMargins(margin, 0, margin, 0)
         input.layoutParams = layoutParams
-        input.hint = "กรอกรหัสผ่านเพื่อเข้าถึงการตั้งค่า"
+        input.hint = getString(R.string.verification_hint)
         input.inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
 
         val container = android.widget.LinearLayout(this)
@@ -121,16 +126,16 @@ class LoginActivity : AppCompatActivity() {
         container.addView(input)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("ยืนยันตัวตน")
+            .setTitle(R.string.verification_title)
             .setView(container)
-            .setPositiveButton("ยืนยัน") { _, _ ->
+            .setPositiveButton(R.string.confirm) { _, _ ->
                 if (input.text.toString() == "pioflife") {
                     showConnectionSettingsDialog()
                 } else {
-                    Toast.makeText(this@LoginActivity, "รหัสผ่านไม่ถูกต้อง", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, R.string.verification_error, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("ยกเลิก", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
@@ -151,9 +156,9 @@ class LoginActivity : AppCompatActivity() {
         passEditText.setText(SqlConnectionVariable.password)
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("ตั้งค่าการเชื่อมต่อ")
+            .setTitle(R.string.connection_settings_title)
             .setView(dialogView)
-            .setPositiveButton("บันทึก") { _, _ ->
+            .setPositiveButton(R.string.save) { _, _ ->
                 val ip = ipEditText.text.toString()
                 val port = portEditText.text.toString()
                 val db = dbEditText.text.toString()
@@ -163,17 +168,17 @@ class LoginActivity : AppCompatActivity() {
                 if (ip.isNotEmpty() && port.isNotEmpty() && db.isNotEmpty() && user.isNotEmpty() && pass.isNotEmpty()) {
                     SqlConnectionVariable.saveSettings(this, ip, port, db, user, pass)
                     updateConnectionLabels() // Update labels after saving
-                    Toast.makeText(this@LoginActivity, "บันทึกการตั้งค่าแล้ว", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, R.string.settings_saved_success, Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this@LoginActivity, "กรุณากรอกข้อมูลให้ครบถ้วน", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, R.string.settings_error_incomplete, Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("ยกเลิก", null)
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
     private fun handleLoginSuccess() {
-        Snackbar.make(binding.root,"เข้าสู่ระบบสำเร็จ",Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, R.string.login_success, Snackbar.LENGTH_SHORT).show()
         checkAndRequestLocationPermission()
     }
 
@@ -187,20 +192,20 @@ class LoginActivity : AppCompatActivity() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
             Snackbar.make(
                 binding.root,
-                "ต้องอนุญาตตำแหน่งเพื่อยืนยันจุดตรวจสอบ กรุณากด 'อนุญาต'",
+                R.string.permission_location_rationale,
                 Snackbar.LENGTH_INDEFINITE
             )
-                .setAction("อนุญาต") {
+                .setAction(R.string.confirm) {
                     requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                 }
                 .show()
         } else {
             Snackbar.make(
                 binding.root,
-                "ไม่สามารถขอสิทธิ์ได้ กรุณาไปที่ตั้งค่าเพื่ออนุญาตสิทธิ์ตำแหน่งด้วยตนเอง",
+                R.string.permission_location_manual,
                 Snackbar.LENGTH_INDEFINITE
             )
-                .setAction("ตั้งค่า") {
+                .setAction(R.string.action_settings) {
                     openAppSettings()
                 }
                 .show()
@@ -226,7 +231,7 @@ class LoginActivity : AppCompatActivity() {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
                 return
             }
-            Toast.makeText(this@LoginActivity, "ไม่สามารถเข้าสู่ระบบได้! ต้องได้รับอนุญาตตำแหน่ง", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@LoginActivity, R.string.login_error_location_required, Toast.LENGTH_LONG).show()
         }
     }
 

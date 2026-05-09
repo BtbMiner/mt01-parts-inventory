@@ -24,7 +24,7 @@ import com.kemtdm.mt01.R
 import com.kemtdm.mt01.data.*
 import kotlinx.coroutines.launch
 
-class InquiryActivity : AppCompatActivity() {
+class InquiryActivity : BaseActivity() {
 
     private lateinit var toolbar: Toolbar
     private lateinit var etSearchInput: com.google.android.material.textfield.TextInputEditText
@@ -86,7 +86,7 @@ class InquiryActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "ตรวจสอบข้อมูล"
+        supportActionBar?.title = getString(R.string.menu_inquiry)
     }
 
     private fun setupListeners() {

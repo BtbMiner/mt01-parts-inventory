@@ -102,6 +102,68 @@ private fun startScan() {
 
 ---
 
+## 🌍 Multi-Language (Localization)
+
+The project implements a simple, persistent multi-language system using a `LanguageManager` and a `BaseActivity` pattern.
+
+### 1. Folder Structure
+Localization follows the standard Android resource qualification:
+- `app/src/main/res/values/strings.xml` (Default/English)
+- `app/src/main/res/values-th/strings.xml` (Thai)
+
+### 2. Implementation Approach
+- **Persistence**: Selected language code ("en", "th") is stored in `SharedPreferences`.
+- **Consistency**: All Activities must inherit from `BaseActivity` to ensure the locale is applied correctly via `attachBaseContext`.
+- **Dynamic Switching**: When the language is changed, the Activity must be recreated (`recreate()`) or the app restarted to apply changes globally.
+
+### 3. LanguageManager Utility
+```kotlin
+object LanguageManager {
+    private const val PREFS_NAME = "LanguagePrefs"
+    private const val KEY_LANG = "selected_lang"
+
+    fun saveLanguage(context: Context, lang: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_LANG, lang).apply()
+    }
+
+    fun loadLanguage(context: Context): String =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_LANG, "en") ?: "en"
+
+    fun applyLocale(context: Context): Context {
+        val locale = Locale(loadLanguage(context))
+        Locale.setDefault(locale)
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        return context.createConfigurationContext(config)
+    }
+}
+```
+
+### 4. BaseActivity Integration
+```kotlin
+abstract class BaseActivity : AppCompatActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        // Intercepts context to apply the saved locale before the activity starts
+        super.attachBaseContext(LanguageManager.applyLocale(newBase))
+    }
+}
+```
+
+### 💡 Best Practices
+- **Never Hardcode Text**: All UI text must be in `strings.xml`. Use `@string/name` in XML and `getString(R.string.name)` in Kotlin.
+- **Content Descriptions**: Always provide translations for `android:contentDescription` to support accessibility.
+- **String Formatting**: Use placeholders (e.g., `Welcome, %1$s`) for dynamic text.
+- **Resource Completeness**: If a string exists in `values/strings.xml`, it **must** have a corresponding entry in `values-th/strings.xml` to avoid build errors or falling back to English unexpectedly.
+
+### ⚠️ Common Pitfalls
+- **Resource Linking Errors**: The build will fail if a layout references a `@string` resource that is missing from any localized `strings.xml` file.
+- **Context Issues**: Always use `attachBaseContext` in a `BaseActivity`. Using `resources.updateConfiguration` is deprecated and often fails on newer Android versions.
+- **Dialogs/Toasts**: Ensure you pass the Activity context (which has the applied locale) to Dialogs and Toasts, not the Application context.
+
+---
+
 ## 🏗 Build Configuration
 
 ### APK Renaming (The Modern Way)

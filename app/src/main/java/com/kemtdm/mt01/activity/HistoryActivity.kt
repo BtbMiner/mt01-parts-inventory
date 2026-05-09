@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryActivity : BaseActivity() {
 
     private lateinit var toolbar: Toolbar
     private lateinit var tvDateRange: TextView
@@ -74,7 +74,7 @@ class HistoryActivity : AppCompatActivity() {
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "ประวัติรายการ"
+        supportActionBar?.title = getString(R.string.action_history)
     }
 
     private fun setupListeners() {

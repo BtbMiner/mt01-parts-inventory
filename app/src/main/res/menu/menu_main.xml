@@ -4,12 +4,17 @@
 
     <item
         android:id="@+id/action_history"
-        android:title="ประวัติรายการ"
+        android:title="@string/action_history"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_language"
+        android:title="@string/language_switch"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_logout"
-        android:title="ออกจากระบบ"
+        android:title="@string/action_logout"
         app:showAsAction="never" />
 
 </menu>

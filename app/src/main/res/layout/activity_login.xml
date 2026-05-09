@@ -55,7 +55,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="KCOP Authentication"
+                android:text="@string/login_kcop_auth"
                 android:textAppearance="?attr/textAppearanceHeadlineSmall"
                 android:textStyle="bold"
                 android:layout_gravity="center_horizontal"
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:hint="ชื่อผู้ใช้">
+                android:hint="@string/login_username">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/username_edit_text"
@@ -80,7 +80,7 @@
                 android:layout_height="wrap_content"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_marginTop="16dp"
-                android:hint="รหัสผ่าน"
+                android:hint="@string/login_password"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -96,7 +96,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="เข้าสู่ระบบ"
+                android:text="@string/login_button"
                 android:paddingVertical="12dp" />
 
             <com.google.android.material.button.MaterialButton
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
-                android:text="ตั้งค่าการเชื่อมต่อ"
+                android:text="@string/connection_settings_title"
                 app:icon="@android:drawable/ic_menu_preferences" />
 
             <LinearLayout

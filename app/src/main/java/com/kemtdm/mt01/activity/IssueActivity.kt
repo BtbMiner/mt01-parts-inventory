@@ -34,7 +34,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class IssueActivity : AppCompatActivity() {
+class IssueActivity : BaseActivity() {
 
     // Views — scan section
     private lateinit var btnOpenScanner: Button
@@ -98,7 +98,7 @@ class IssueActivity : AppCompatActivity() {
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "เบิกของออก"
+        supportActionBar?.title = getString(R.string.menu_issue)
     }
 
     private fun bindViews() {

@@ -1,59 +1,63 @@
 <resources>
     <string name="app_name">Parts Inventory</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
-    <string name="check_point">Check Point</string>
-
-    <string name="menu_blank_form">Blank Form</string>
-    <string name="menu_saved_form">Saved Form</string>
-    <string name="menu_remark">Remark</string>
-    <string name="normal">ผ่านใช้งานได้</string>
-    <string name="minor_abnormal">ชำรุดต้องปรับปรุง</string>
-    <string name="critical_abnormal">ไม่ผ่านต้องแก้ไขทันที</string>
-    <string name="additional_note_hint">กรอกหมายเหตุเพิ่มเติม (ถ้ามี)</string>
-    <string name="program_index">CS02</string>
-    <string name="fab_email_desc">email</string>
-    <string name="checklist_item_format">  - %s</string>
-    <string name="equipment_name_format">%1$d) %2$s</string>
     <string name="kcop">KCOP</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_history">Transaction History</string>
+    <string name="action_logout">Logout</string>
 
-    <string name="remark_info_text">
-    Remark:\n
-    \t- If a problem is found, please inform the following personnel in order:\n
-    \t\tEmployee \t\u2192 \tMaintenance \t\u2192 \tProduction Chief \t\u2192 \tFactory Manager\n
-    \t- The equipment shall be checked every day before use.\n\n
+    <string name="welcome_user">Welcome, %1$s</string>
+    <string name="low_stock_title">⚠️ Items to Refill</string>
+    <string name="recent_txn_title">🕐 Today\'s Transactions</string>
+    <string name="no_data">No data found</string>
 
-    หมายเหตุ:\n
-    \t- หากตรวจสอบและพบข้อบกพร่อง ให้แจ้งผู้เกี่ยวข้องตามลำดับดังนี้:\n
-    \t\tผู้พบเห็น \t\u2192 \tช่างซ่อมบำรุง \t\u2192 \tหัวหน้าฝ่ายผลิต \t\u2192 \tผู้จัดการโรงงาน
-</string>
+    <string name="menu_inquiry">Inquiry</string>
+    <string name="menu_receive">Receive</string>
+    <string name="menu_issue">Issue</string>
+    <string name="menu_return">Return</string>
+
+    <string name="txn_in">Receive</string>
+    <string name="txn_out">Issue</string>
+    <string name="txn_ret">Return</string>
+
+    <string name="stock_out">Out of Stock</string>
+    <string name="stock_low">Low Stock</string>
+    <string name="stock_normal">Normal</string>
+
+    <string name="app_login_title">Parts Inventory</string>
+    <string name="login_kcop_auth">KCOP Authentication</string>
+    <string name="login_button">Login</string>
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_error_empty">Please enter username and password</string>
+    <string name="login_error_invalid">Invalid username or password</string>
+    <string name="login_error_connection">Cannot connect to database</string>
+    <string name="login_error_general">An error occurred during authentication</string>
+    <string name="login_error_location_required">Login failed! Location permission is required.</string>
+    <string name="login_success">Login successful</string>
 
     <string name="server_ip_format">Server IP: %1$s</string>
     <string name="database_name_format">Database: %1$s</string>
-    <string name="app_login_title">Parts Inventory</string>
-    <string name="login_error_empty">กรุณากรอกชื่อผู้ใช้และรหัสผ่าน</string>
-    <string name="login_error_invalid">ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง</string>
-    <string name="login_error_connection">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</string>
-    <string name="login_error_general">เกิดข้อผิดพลาดในการตรวจสอบ</string>
-    <string name="verification_title">ยืนยันตัวตน</string>
-    <string name="verification_hint">กรอกรหัสผ่านเพื่อเข้าถึงการตั้งค่า</string>
-    <string name="verification_error">รหัสผ่านไม่ถูกต้อง</string>
-    <string name="connection_settings_title">ตั้งค่าการเชื่อมต่อ</string>
-    <string name="settings_saved_success">บันทึกการตั้งค่าแล้ว</string>
-    <string name="settings_error_incomplete">กรุณากรอกข้อมูลให้ครบถ้วน</string>
-    <string name="confirm">ยืนยัน</string>
-    <string name="cancel">ยกเลิก</string>
-    <string name="save">บันทึก</string>
 
-    <string name="logout_confirm_title">ยืนยันการออกจากระบบ</string>
-    <string name="logout_confirm_message">คุณต้องการออกจากระบบหรือไม่?</string>
-    <string name="logout_button">ออกจากระบบ</string>
-    <string name="pm_check_sheet_format">PM Check Sheet - %1$s Week %2$d</string>
-    <string name="blank_form_title_format">Fire Pump and Associated Equipment Inspection Form - %1$s Week %2$d (%3$s)</string>
-    <string name="saved_form_title">Fire Pump and Associated Equipment Inspection Form – Last 54 Weeks</string>
-    <string name="default_app_title">Fire Pump and Associated Equipment Inspection Form</string>
+    <string name="verification_title">Verification</string>
+    <string name="verification_hint">Enter password to access settings</string>
+    <string name="verification_error">Invalid password</string>
+
+    <string name="connection_settings_title">Connection Settings</string>
+    <string name="settings_saved_success">Settings saved</string>
+    <string name="settings_server_ip">Server IP</string>
+    <string name="settings_server_port">Server Port</string>
+    <string name="settings_db_name">Database Name</string>
+    <string name="settings_error_incomplete">Please fill in all fields</string>
+
+    <string name="logout_confirm_title">Confirm Logout</string>
+    <string name="logout_confirm_message">Do you want to logout?</string>
+    <string name="logout_button">Logout</string>
+
+    <string name="language_switch">Change Language</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+
+    <string name="permission_location_rationale">Location permission is required to verify checkpoint. Please click \'Allow\'</string>
+    <string name="permission_location_manual">Permission denied. Please go to settings to allow location manually.</string>
 </resources>
