@@ -26,10 +26,17 @@ import com.kemtdm.mt01.data.StockInfo
 import com.kemtdm.mt01.data.StockRepository
 import com.kemtdm.mt01.data.TxnInput
 import com.kemtdm.mt01.data.TxnRepository
+import com.kemtdm.mt01.sql.SqlConnectionVariable
 import com.kemtdm.mt01.utils.DeviceUtils
 import com.kemtdm.mt01.utils.QuantitySelectorHandler
 import com.kemtdm.mt01.utils.SessionManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,11 +62,12 @@ class IssueActivity : BaseActivity() {
     private lateinit var etRemark: EditText
     private lateinit var tvTxnDate: TextView
     private lateinit var btnConfirm: Button
-    
+
     private lateinit var qtyHandler: QuantitySelectorHandler
 
     private var currentStock: StockInfo? = null
     private var selectedDate: String = todayString()
+    private val okHttpClient = OkHttpClient()
 
     // ZXing scanner launcher
     private val scanLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
@@ -112,13 +120,13 @@ class IssueActivity : BaseActivity() {
         tvLocId        = findViewById(R.id.tv_loc_id)
         tvCurrentQty   = findViewById(R.id.tv_current_qty)
         tvUnit         = findViewById(R.id.tv_unit)
-        
+
         // Qty Selector components from include
         val qtyContainer = findViewById<View>(R.id.qty_selector)
         etQty            = qtyContainer.findViewById(R.id.et_qty)
         val btnMinus     = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_minus)
         val btnPlus      = qtyContainer.findViewById<MaterialButton>(R.id.btn_qty_plus)
-        
+
         qtyHandler = QuantitySelectorHandler(etQty, btnMinus, btnPlus, lifecycleScope)
         qtyHandler.setupShortcuts(
             qtyContainer.findViewById(R.id.btn_shortcut_1),
@@ -280,14 +288,57 @@ class IssueActivity : BaseActivity() {
         )
 
         lifecycleScope.launch {
-            val success = TxnRepository.saveTxn(input)
+            val remainingQty = TxnRepository.saveTxn(input)
 
-            if (success) {
+            if (remainingQty != null) {
+                sendTeamsAlertIfNeeded(stock, remainingQty)
                 resetForm()
                 showSuccess("บันทึกสำเร็จ")
             } else {
                 showError("บันทึกไม่สำเร็จ กรุณาลองใหม่")
                 btnConfirm.isEnabled = true
+            }
+        }
+    }
+
+    // -------------------------------------------------------
+    // Teams Alert
+    // -------------------------------------------------------
+
+    private fun sendTeamsAlertIfNeeded(stock: StockInfo, remainingQty: Double) {
+        if (remainingQty >= stock.minStock) return          // ยังปกติ ไม่ต้องแจ้ง
+
+        val webhookUrl = SqlConnectionVariable.teamsWebhookUrl
+        if (webhookUrl.isBlank()) return                    // ยังไม่ได้ตั้งค่า
+
+        // fire-and-forget — ไม่ block UI และไม่กระทบ flow หลัก
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val message = buildString {
+                    append("⚠️ **Low Stock Alert — MT01**\n\n")
+                    append("**${stock.partName}**")
+                    if (stock.partCode.isNotBlank()) append(" (${stock.partCode})")
+                    append("\n")
+                    append("📦 คงเหลือ: **${remainingQty.toInt()} ${stock.unit}**")
+                    append(" | Min: ${stock.minStock.toInt()} ${stock.unit}")
+                    append("\n📍 Location: ${stock.locId}")
+                }
+
+                val json = """{"text":"$message"}"""
+
+                val request = Request.Builder()
+                    .url(webhookUrl)
+                    .post(json.toRequestBody("application/json".toMediaType()))
+                    .build()
+
+                okHttpClient.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        android.util.Log.w("TeamsAlert", "Webhook response: ${response.code}")
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("TeamsAlert", "Failed to send alert: ${e.message}")
+                // fail silently — ไม่กระทบ user
             }
         }
     }

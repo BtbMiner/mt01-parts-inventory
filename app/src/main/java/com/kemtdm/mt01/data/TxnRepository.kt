@@ -19,17 +19,17 @@ object TxnRepository {
     // บันทึก Transaction + อัปเดต MT_STOCK + log AUDIT
     // คืนค่า true = สำเร็จ, false = ล้มเหลว
     // -------------------------------------------------------
-    suspend fun saveTxn(input: TxnInput): Boolean = withContext(Dispatchers.IO) {
+    suspend fun saveTxn(input: TxnInput): Double? = withContext(Dispatchers.IO) {
         var connection: Connection? = null
         try {
-            connection = GetConnection.connection ?: return@withContext false
+            connection = GetConnection.connection ?: return@withContext null
             connection.autoCommit = false
 
             // ✅ 1. ดึง stock ปัจจุบัน (ล็อก row กัน race condition)
             val (currentQty, currentLoc) = getCurrentStock(connection, input.partId)
                 ?: run {
                     connection.rollback()
-                    return@withContext false
+                    return@withContext null
                 }
 
             // ✅ 2. คำนวณ QTY ใหม่
@@ -38,14 +38,14 @@ object TxnRepository {
                 "OUT"       -> currentQty - input.qty
                 else -> {
                     connection.rollback()
-                    return@withContext false
+                    return@withContext null
                 }
             }
 
             if (newQty < 0) {
                 Log.e(TAG, "Stock not enough: current=$currentQty request=${input.qty}")
                 connection.rollback()
-                return@withContext false
+                return@withContext null
             }
 
             // ✅ 3. เตรียม LOC_FROM / LOC_TO ให้ตรง constraint
@@ -63,7 +63,7 @@ object TxnRepository {
                 }
                 else -> {
                     connection.rollback()
-                    return@withContext false
+                    return@withContext null
                 }
             }
 
@@ -75,7 +75,7 @@ object TxnRepository {
                 locTo = finalLocTo
             ) ?: run {
                 connection.rollback()
-                return@withContext false
+                return@withContext null
             }
 
             // ✅ 5. UPDATE MT_STOCK
@@ -97,7 +97,7 @@ object TxnRepository {
 
             connection.commit()
             Log.d(TAG, "saveTxn SUCCESS: txnId=$txnId part=${input.partId}")
-            true
+            newQty
 
         } catch (e: SQLException) {
 
@@ -115,14 +115,14 @@ object TxnRepository {
 
             Log.w(TAG, "Transaction ROLLBACK (saveTxn)")
             connection?.rollback()
-            false
+            null
 
         } catch (e: Exception) {
 
             Log.e(TAG, "=== GENERAL ERROR === ${e.message}", e)
             Log.w(TAG, "Transaction ROLLBACK (saveTxn)")
             connection?.rollback()
-            false
+            null
 
         } finally {
             connection?.autoCommit = true
