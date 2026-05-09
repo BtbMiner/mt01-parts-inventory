@@ -16,6 +16,7 @@ object SqlConnectionVariable {
     var userName: String = "sa"
     var password: String = "wwwww"
 
+    var teamsWebhookUrl: String = ""
     const val MSSQL_TRUST = "encrypt=false;trustServerCertificate=true;"
 
     fun initialize(context: Context) {
@@ -31,7 +32,7 @@ object SqlConnectionVariable {
                 databaseName = jsonObject.optString("database", databaseName)
                 userName = jsonObject.optString("user", userName)
                 password = jsonObject.optString("password", password)
-                
+                teamsWebhookUrl = jsonObject.optString("teams_webhook_url", teamsWebhookUrl)
                 // Save these to prefs
                 saveSettings(context, serverIp, serverPort, databaseName, userName, password)
             } catch (e: Exception) {
@@ -43,15 +44,17 @@ object SqlConnectionVariable {
             databaseName = prefs.getString("database", databaseName) ?: databaseName
             userName = prefs.getString("user", userName) ?: userName
             password = prefs.getString("password", password) ?: password
+            teamsWebhookUrl = prefs.getString("teams_webhook_url", teamsWebhookUrl) ?: teamsWebhookUrl
         }
     }
 
-    fun saveSettings(context: Context, ip: String, port: String, db: String, user: String, pass: String) {
+    fun saveSettings(context: Context, ip: String, port: String, db: String, user: String, pass: String, webhookUrl: String = teamsWebhookUrl) {
         serverIp = ip
         serverPort = port
         databaseName = db
         userName = user
         password = pass
+        teamsWebhookUrl = webhookUrl
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().apply {
@@ -60,6 +63,7 @@ object SqlConnectionVariable {
             putString("database", db)
             putString("user", user)
             putString("password", pass)
+            putString("teams_webhook_url", webhookUrl)
             apply()
         }
     }

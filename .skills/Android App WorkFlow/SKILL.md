@@ -102,6 +102,37 @@ private fun startScan() {
 
 ---
 
+## 🐘 Gradle: Runtime Configuration
+
+### Exposing Build Properties via BuildConfig
+**Problem:** Hardcoding identifiers (like `programId`) in Kotlin code creates maintenance overhead and risks desync with the project configuration.
+
+**Root Cause:** Build-time properties like `project.name` are not natively accessible at runtime within the application code.
+
+**Solution:** Use `buildConfigField` in `build.gradle.kts` to expose build-time properties as constants in the generated `BuildConfig` class.
+
+**Configuration (`app/build.gradle.kts`):**
+```kotlin
+android {
+    defaultConfig {
+        // Expose root project name as APP_NAME
+        buildConfigField("String", "APP_NAME", "\"${project.rootProject.name}\"")
+    }
+}
+```
+
+**Usage (`LoginActivity.kt`):**
+```kotlin
+val programId = BuildConfig.APP_NAME
+```
+
+**Best Practices:**
+- **Synchronized Configuration**: Use `BuildConfig` to keep runtime logic perfectly aligned with build-script definitions.
+- **Type Safety**: `buildConfigField` generates strongly-typed constants (String, Int, Boolean).
+- **Clean Code**: Removes "magic strings" from business logic, making the code more portable.
+
+---
+
 ## 🌍 Multi-Language (Localization)
 
 The project implements a simple, persistent multi-language system using a `LanguageManager` and a `BaseActivity` pattern.
@@ -191,6 +222,37 @@ androidComponents {
 - **Zero Hardcoding**: Never hardcode identifiers that Gradle already knows.
 - **Environment Independence**: Ensure build logic works across different machines and project clones without manual edits.
 - **Consistency**: Use `project.rootProject.name` if you want the main project name even when building from a sub-module.
+
+---
+
+## 🔐 Security: Authentication & Authorization
+
+### Two-Step Validation Pattern
+**Problem:** Validating identity (USER_ID/PASSWORD) alone allows any user in the database to access any application, regardless of their role or assigned tasks.
+
+**Root Cause:** Authentication (who you are) is distinct from Authorization (what you can do). CM_USER handles the former, but not the latter for specific programs.
+
+**Solution:** Implement a two-step check:
+1.  **Authenticate** against `CM_USER`.
+2.  **Authorize** against `CM_PERMISSION` for the specific `PROGRAM_ID`.
+
+**Key SQL Logic:**
+```sql
+-- Step 2: Program-level permission check
+SELECT AVAILABLE 
+FROM CM_PERMISSION 
+WHERE USER_ID = ? 
+  AND PROGRAM_ID = ? 
+  AND AVAILABLE = 1
+```
+
+**Implementation Behavior:**
+- If the permission record is missing or `AVAILABLE != 1`, the login is treated as failed (`InvalidCredentials`), even if the password was correct.
+
+**Best Practices:**
+- **Separation of Concerns**: Keep user data and program permissions in separate tables.
+- **Fail Fast**: Close resources and return immediately if identity validation fails before checking permissions.
+- **Repository-Level Security**: Centralize these checks in the data/repository layer to ensure consistent enforcement.
 
 ---
 

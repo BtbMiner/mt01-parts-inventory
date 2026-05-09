@@ -147,6 +147,7 @@ class LoginActivity : BaseActivity() {
         val dbEditText = dialogView.findViewById<TextInputEditText>(R.id.db_edit_text)
         val userEditText = dialogView.findViewById<TextInputEditText>(R.id.user_edit_text)
         val passEditText = dialogView.findViewById<TextInputEditText>(R.id.pass_edit_text)
+        val webhookEditText = dialogView.findViewById<TextInputEditText>(R.id.webhook_edit_text)
 
         // Set current values
         ipEditText.setText(SqlConnectionVariable.serverIp)
@@ -154,6 +155,7 @@ class LoginActivity : BaseActivity() {
         dbEditText.setText(SqlConnectionVariable.databaseName)
         userEditText.setText(SqlConnectionVariable.userName)
         passEditText.setText(SqlConnectionVariable.password)
+        webhookEditText.setText(SqlConnectionVariable.teamsWebhookUrl)
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.connection_settings_title)
@@ -166,7 +168,7 @@ class LoginActivity : BaseActivity() {
                 val pass = passEditText.text.toString()
 
                 if (ip.isNotEmpty() && port.isNotEmpty() && db.isNotEmpty() && user.isNotEmpty() && pass.isNotEmpty()) {
-                    SqlConnectionVariable.saveSettings(this, ip, port, db, user, pass)
+                    SqlConnectionVariable.saveSettings(this, ip, port, db, user, pass, webhookEditText.text.toString())
                     updateConnectionLabels() // Update labels after saving
                     Toast.makeText(this@LoginActivity, R.string.settings_saved_success, Toast.LENGTH_SHORT).show()
                 } else {
@@ -263,16 +265,37 @@ class LoginActivity : BaseActivity() {
 
             resultSet = preparedStatement.executeQuery()
 
-            return if (resultSet.next()) {
-                Log.d(logTAG, "Found user in database.")
+            if (resultSet.next()) {
+                Log.d(logTAG, "Found user in database. Checking permissions.")
                 val user = resultSet.getString("USER_ID")
                 val userName = resultSet.getString("USER_NAME")
                 val isAdmin = resultSet.getBoolean("ADMINISTRATOR_FLAG")
-                saveUserPref(user,userName, isAdmin )
-                AuthenticationResult.Success
+
+                // Secondary check for program permission
+                val programId = "MT01"
+                val permSql = "SELECT AVAILABLE FROM CM_PERMISSION WHERE USER_ID = ? AND PROGRAM_ID = ? AND AVAILABLE = 1"
+                
+                val permPs = connection.prepareStatement(permSql)
+                permPs.setString(1, user)
+                permPs.setString(2, programId)
+                
+                val permRs = permPs.executeQuery()
+                val hasPermission = permRs.next()
+                
+                permRs.close()
+                permPs.close()
+
+                return if (hasPermission) {
+                    Log.d(logTAG, "Permission granted for $programId.")
+                    saveUserPref(user, userName, isAdmin)
+                    AuthenticationResult.Success
+                } else {
+                    Log.w(logTAG, "Permission denied for $programId.")
+                    AuthenticationResult.InvalidCredentials
+                }
             } else {
-                Log.d(logTAG, "User not found in database.")
-                AuthenticationResult.InvalidCredentials
+                Log.d(logTAG, "User not found or disabled.")
+                return AuthenticationResult.InvalidCredentials
             }
         } catch (e: Exception) {
             Log.e(logTAG, "Exception during authentication: ${e.message}", e)

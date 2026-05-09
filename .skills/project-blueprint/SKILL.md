@@ -57,6 +57,11 @@ ui: Material 3 (XML + DayNight Support)
 - **Global Application**: All Activities inherit from a common `BaseActivity` that injects the selected locale into the `Context` before instantiation.
 - **Constraint**: **Zero hardcoded strings** in code or layout XML; everything must be defined in `strings.xml` to prevent build-time resource linking errors.
 
+# 🐘 Dynamic Configuration
+
+- **Single Source of Truth**: Application metadata (like `programId`) is defined in `build.gradle.kts` and exposed via `BuildConfig`.
+- **Constraint**: Never hardcode project-specific identifiers in business logic; always use `BuildConfig.APP_NAME` or `applicationId`.
+
 # 📌 Project Constraints
 - **Preserve Logic**: Do not break existing transaction logic (Receive/Issue/Return).
 - **Code Reuse**: Centralize logic in Repositories; Activities must not contain raw SQL or complex data transformation logic.

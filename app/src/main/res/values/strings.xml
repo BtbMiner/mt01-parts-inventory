@@ -38,6 +38,8 @@
     <string name="server_ip_format">Server IP: %1$s</string>
     <string name="database_name_format">Database: %1$s</string>
 
+    <string name="settings_teams_webhook_url">Teams Webhook URL</string>
+
     <string name="verification_title">Verification</string>
     <string name="verification_hint">Enter password to access settings</string>
     <string name="verification_error">Invalid password</string>
