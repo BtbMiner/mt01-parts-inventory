@@ -44,7 +44,7 @@ android {
 
 androidComponents {
     onVariants { variant ->
-        val appName = "AD07"
+        val appName = project.rootProject.name
         val date = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(Date())
         val buildTypeName = variant.buildType ?: variant.name
 

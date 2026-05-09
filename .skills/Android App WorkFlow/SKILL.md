@@ -164,6 +164,36 @@ abstract class BaseActivity : AppCompatActivity() {
 
 ---
 
+## 🐘 Gradle: Dynamic Project Configuration
+
+### Dynamic APK Naming
+**Problem:** Hardcoded app names (e.g., `"AD07"`) in build scripts lead to incorrect APK filenames when a project is renamed or used as a template.
+
+**Root Cause:** Static strings in `build.gradle.kts` do not automatically synchronize with the Gradle project or module name.
+
+**Solution:** Use the built-in `project.name` (or `project.rootProject.name`) property to dynamically resolve the application identifier.
+
+```kotlin
+androidComponents {
+    onVariants { variant ->
+        // ✅ Use dynamic project name instead of hardcoded string
+        val appName = project.rootProject.name
+        val date = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(Date())
+
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("${appName}-${date}.apk")
+        }
+    }
+}
+```
+
+**Best Practices:**
+- **Zero Hardcoding**: Never hardcode identifiers that Gradle already knows.
+- **Environment Independence**: Ensure build logic works across different machines and project clones without manual edits.
+- **Consistency**: Use `project.rootProject.name` if you want the main project name even when building from a sub-module.
+
+---
+
 ## 🏗 Build Configuration
 
 ### APK Renaming (The Modern Way)
