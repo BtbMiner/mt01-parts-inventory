@@ -1,6 +1,7 @@
 package com.kemtdm.mt01.activity
 
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.widget.Button
@@ -309,7 +310,16 @@ class IssueActivity : BaseActivity() {
         if (remainingQty >= stock.minStock) return          // ยังปกติ ไม่ต้องแจ้ง
 
         val webhookUrl = SqlConnectionVariable.teamsWebhookUrl
-        if (webhookUrl.isBlank()) return                    // ยังไม่ได้ตั้งค่า
+
+        if (webhookUrl.isBlank()) {
+            Log.w("TeamsAlert", "Webhook URL not configured")
+            return
+        }
+
+        if (!webhookUrl.startsWith("http")) {
+            Log.w("TeamsAlert", "Invalid webhook URL: $webhookUrl")
+            return
+        }
 
         // fire-and-forget — ไม่ block UI และไม่กระทบ flow หลัก
         lifecycleScope.launch(Dispatchers.IO) {

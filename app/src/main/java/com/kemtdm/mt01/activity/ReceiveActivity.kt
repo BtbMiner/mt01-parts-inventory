@@ -220,7 +220,7 @@ class ReceiveActivity : BaseActivity() {
 
         lifecycleScope.launch {
             btnConfirm.isEnabled = false
-            if (TxnRepository.saveTxn(input)) {
+            if (TxnRepository.saveTxn(input) != null) {
                 showSuccess("รับของเข้าสำเร็จ")
                 resetForm()
             } else {

@@ -220,7 +220,7 @@ class ReturnActivity : BaseActivity() {
 
         lifecycleScope.launch {
             btnConfirm.isEnabled = false
-            if (TxnRepository.saveTxn(input)) {
+            if (TxnRepository.saveTxn(input) != null) {
                 showSuccess("คืนของสำเร็จ")
                 resetForm()
             } else {
