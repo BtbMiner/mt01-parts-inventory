@@ -19,6 +19,7 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.color.MaterialColors
@@ -42,6 +43,7 @@ class MainActivity : BaseActivity() {
 
     // Views
     private lateinit var toolbar: Toolbar
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var tvWelcome: TextView
     private lateinit var tvLowStockCount: TextView
     private lateinit var rvLowStock: RecyclerView
@@ -71,8 +73,17 @@ class MainActivity : BaseActivity() {
         bindViews()
         setupToolbar()
         setupWindowInsets()
+        setupSwipeRefresh()
         setupShortcutButtons()
         loadDashboard()
+    }
+
+    private fun setupSwipeRefresh() {
+        swipeRefresh.setOnRefreshListener {
+            loadDashboard()
+        }
+        // Optional: set colors
+        swipeRefresh.setColorSchemeColors(getColor(R.color.blue_primary))
     }
 
     private fun setupWindowInsets() {
@@ -95,6 +106,7 @@ class MainActivity : BaseActivity() {
 
     private fun bindViews() {
         toolbar          = findViewById(R.id.toolbar)
+        swipeRefresh     = findViewById(R.id.swipe_refresh)
         tvWelcome        = findViewById(R.id.tv_welcome)
         tvLowStockCount  = findViewById(R.id.tv_low_stock_count)
         rvLowStock       = findViewById(R.id.rv_low_stock)
@@ -136,6 +148,7 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             loadLowStock()
             loadRecentTxn()
+            swipeRefresh.isRefreshing = false
         }
     }
 

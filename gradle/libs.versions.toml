@@ -14,6 +14,7 @@ composeBom = "2026.05.00"
 material = "1.13.0"
 constraintlayout = "2.2.1"
 appcompat = "1.7.1"
+swiperefreshlayout = "1.1.0"
 zxing = "4.3.0"
 
 [libraries]
@@ -37,6 +38,7 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 material = { module = "com.google.android.material:material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 zxing = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxing" }
 
 [plugins]

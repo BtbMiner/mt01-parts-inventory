@@ -78,7 +78,9 @@
                                 android:id="@+id/et_manual_input"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:inputType="text" />
+                                android:inputType="number"
+                                android:imeOptions="actionSearch"
+                                android:singleLine="true"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.button.MaterialButton

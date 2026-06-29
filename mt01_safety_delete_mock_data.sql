@@ -50,5 +50,5 @@ SELECT 'MT_LOCATION'   AS TABLE_NAME, COUNT(*) AS ROWS FROM MT_LOCATION;
 -- ตอนแรกให้ใช้ ROLLBACK เพื่อตรวจสอบก่อน
 -- ถ้ามั่นใจแล้วค่อยเปลี่ยนเป็น COMMIT
 
---ROLLBACK;  -- ✅ ใช้ตอน test
-COMMIT;       -- ✅ ใช้จริง
+ROLLBACK;  -- ✅ ใช้ตอน test
+--COMMIT;       -- ✅ ใช้จริง
