@@ -27,6 +27,7 @@ import com.kemtdm.mt01.R
 import com.kemtdm.mt01.sql.GetConnection
 import com.kemtdm.mt01.sql.SqlConnectionVariable
 import com.kemtdm.mt01.utils.LanguageManager
+import com.kemtdm.mt01.utils.PasswordEncryption
 import java.sql.Connection
 
 class LoginActivity : BaseActivity() {
@@ -54,7 +55,7 @@ class LoginActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize Connection Settings
+        // Initialize Connection Settings (Decrypts stored passwords)
         SqlConnectionVariable.initialize(this)
         
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -149,26 +150,63 @@ class LoginActivity : BaseActivity() {
         val passEditText = dialogView.findViewById<TextInputEditText>(R.id.pass_edit_text)
         val webhookEditText = dialogView.findViewById<TextInputEditText>(R.id.webhook_edit_text)
 
-        // Set current values
+        val smtpServerEditText = dialogView.findViewById<TextInputEditText>(R.id.smtp_server_edit_text)
+        val smtpPortEditText = dialogView.findViewById<TextInputEditText>(R.id.smtp_port_edit_text)
+        val smtpSslSwitch = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.smtp_ssl_switch)
+        val smtpUserEditText = dialogView.findViewById<TextInputEditText>(R.id.smtp_user_edit_text)
+        val smtpPassEditText = dialogView.findViewById<TextInputEditText>(R.id.smtp_pass_edit_text)
+        val notificationRecipientEditText = dialogView.findViewById<TextInputEditText>(R.id.notification_recipient_edit_text)
+
+        // Phase 2 Audit: Load encrypted values from SharedPreferences and Decrypt
+        val prefs = getSharedPreferences("ConnectionSettings", MODE_PRIVATE)
+        val encryptedSqlPass = prefs.getString("password", "") ?: ""
+        val encryptedSmtpPass = prefs.getString("smtp_password", "") ?: ""
+
+        // Decrypt for UI display
+        val decryptedSqlPass = PasswordEncryption.decryptPassword(encryptedSqlPass)
+        val decryptedSmtpPass = PasswordEncryption.decryptPassword(encryptedSmtpPass)
+
+        // Set current values to dialog fields
         ipEditText.setText(SqlConnectionVariable.serverIp)
         portEditText.setText(SqlConnectionVariable.serverPort)
         dbEditText.setText(SqlConnectionVariable.databaseName)
         userEditText.setText(SqlConnectionVariable.userName)
-        passEditText.setText(SqlConnectionVariable.password)
+        passEditText.setText(decryptedSqlPass)
         webhookEditText.setText(SqlConnectionVariable.teamsWebhookUrl)
+
+        smtpServerEditText.setText(SqlConnectionVariable.smtpServer)
+        smtpPortEditText.setText(SqlConnectionVariable.smtpPort)
+        smtpSslSwitch.isChecked = SqlConnectionVariable.smtpEnableSsl
+        smtpUserEditText.setText(SqlConnectionVariable.smtpUser)
+        smtpPassEditText.setText(decryptedSmtpPass)
+        notificationRecipientEditText.setText(SqlConnectionVariable.notificationRecipient)
 
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.connection_settings_title)
             .setView(dialogView)
             .setPositiveButton(R.string.save) { _, _ ->
+                Log.i("CryptoCheck", "Save Button Clicked")
                 val ip = ipEditText.text.toString()
                 val port = portEditText.text.toString()
                 val db = dbEditText.text.toString()
                 val user = userEditText.text.toString()
-                val pass = passEditText.text.toString()
+                val plainPass = passEditText.text.toString()
+                val plainSmtpPass = smtpPassEditText.text.toString()
+                
+                Log.d("CryptoCheck", "Capturing plain text passwords from UI for Phase 1 Audit")
 
-                if (ip.isNotEmpty() && port.isNotEmpty() && db.isNotEmpty() && user.isNotEmpty() && pass.isNotEmpty()) {
-                    SqlConnectionVariable.saveSettings(this, ip, port, db, user, pass, webhookEditText.text.toString())
+                if (ip.isNotEmpty() && port.isNotEmpty() && db.isNotEmpty() && user.isNotEmpty() && plainPass.isNotEmpty()) {
+                    // Phase 1 Audit: saveSettings handles encryption before committing to SharedPreferences
+                    SqlConnectionVariable.saveSettings(
+                        this, ip, port, db, user, plainPass, 
+                        webhookEditText.text.toString(),
+                        smtpServerEditText.text.toString(),
+                        smtpPortEditText.text.toString(),
+                        smtpSslSwitch.isChecked,
+                        smtpUserEditText.text.toString(),
+                        plainSmtpPass,
+                        notificationRecipientEditText.text.toString()
+                    )
                     updateConnectionLabels() // Update labels after saving
                     Toast.makeText(this@LoginActivity, R.string.settings_saved_success, Toast.LENGTH_SHORT).show()
                 } else {

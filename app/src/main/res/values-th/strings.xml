@@ -40,6 +40,15 @@
 
     <string name="settings_teams_webhook_url">Teams Webhook URL</string>
 
+    <!-- SMTP Settings -->
+    <string name="settings_smtp_title">ตั้งค่า SMTP</string>
+    <string name="settings_smtp_server">SMTP Server</string>
+    <string name="settings_smtp_port">SMTP Port</string>
+    <string name="settings_smtp_ssl">เปิดใช้งาน SSL</string>
+    <string name="settings_smtp_user">SMTP Username</string>
+    <string name="settings_smtp_pass">SMTP Password</string>
+    <string name="settings_notification_recipient">ผู้รับการแจ้งเตือน</string>
+
     <string name="verification_title">ยืนยันตัวตน</string>
     <string name="verification_hint">กรอกรหัสผ่านเพื่อเข้าถึงการตั้งค่า</string>
     <string name="verification_error">รหัสผ่านไม่ถูกต้อง</string>
