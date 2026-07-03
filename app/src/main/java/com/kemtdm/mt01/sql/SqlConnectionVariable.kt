@@ -13,16 +13,16 @@ object SqlConnectionVariable {
     // Database Settings
     var serverIp: String = "192.168.100.7"
     var serverPort: String = "1433"
-    var databaseName: String = "V1_KCOP"
+    var databaseName: String = "V2_KCOP"
     var userName: String = "sa"
-    var password: String = "wwwww"
+    var password: String = "Sql!@#$"
 
     // SMTP Settings
     var smtpServer: String = "smtpm.kobe-emt.co.th"
     var smtpPort: String = "25"
     var smtpEnableSsl: Boolean = false
     var smtpUser: String = "kcop@kobe-emt.co.th"
-    var smtpPassword: String = ""
+    var smtpPassword: String = "Kobelco.com2024"
     var notificationRecipient: String = "kirati.sitthiprasert@kobelco.com"
 
     var teamsWebhookUrl: String = ""

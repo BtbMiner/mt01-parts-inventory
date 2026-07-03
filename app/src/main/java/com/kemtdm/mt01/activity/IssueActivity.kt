@@ -41,6 +41,17 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Properties
+import org.json.JSONArray
+import org.json.JSONObject
+import javax.mail.Authenticator
+import javax.mail.Message
+import javax.mail.MessagingException
+import javax.mail.PasswordAuthentication
+import javax.mail.Session
+import javax.mail.Transport
+import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeMessage
 
 class IssueActivity : BaseActivity() {
 
@@ -68,7 +79,7 @@ class IssueActivity : BaseActivity() {
 
     private var currentStock: StockInfo? = null
     private var selectedDate: String = todayString()
-    private val okHttpClient = OkHttpClient()
+    // private val okHttpClient = OkHttpClient() // TODO: Disabled during transition to SMTP Email Notifications.
 
     // ZXing scanner launcher
     private val scanLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
@@ -292,7 +303,7 @@ class IssueActivity : BaseActivity() {
             val remainingQty = TxnRepository.saveTxn(input)
 
             if (remainingQty != null) {
-                sendTeamsAlertIfNeeded(stock, remainingQty)
+                sendEmailNotificationIfNeeded(stock, remainingQty)
                 resetForm()
                 showSuccess("บันทึกสำเร็จ")
             } else {
@@ -303,10 +314,94 @@ class IssueActivity : BaseActivity() {
     }
 
     // -------------------------------------------------------
-    // Teams Alert
+    // Notification (SMTP Email)
     // -------------------------------------------------------
 
+    private fun sendEmailNotificationIfNeeded(stock: StockInfo, remainingQty: Double) {
+        if (remainingQty >= stock.minStock) return // ยังปกติ ไม่ต้องแจ้ง
+
+        val smtpServer = SqlConnectionVariable.smtpServer
+        val smtpPort   = SqlConnectionVariable.smtpPort
+        val smtpUser   = SqlConnectionVariable.smtpUser
+        val smtpPass   = SqlConnectionVariable.smtpPassword
+        val recipient  = SqlConnectionVariable.notificationRecipient
+        val useSsl     = SqlConnectionVariable.smtpEnableSsl
+
+        if (smtpServer.isBlank() || recipient.isBlank()) {
+            Log.w("EmailNotification", "SMTP Server or Recipient not configured")
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val props = Properties().apply {
+                    put("mail.smtp.host", smtpServer)
+                    put("mail.smtp.port", smtpPort)
+                    put("mail.smtp.auth", "true")
+                    if (useSsl) {
+                        put("mail.smtp.socketFactory.port", smtpPort)
+                        put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
+                        put("mail.smtp.ssl.enable", "true")
+                    } else {
+                        put("mail.smtp.starttls.enable", "true")
+                    }
+                }
+
+                val session = Session.getInstance(props, object : Authenticator() {
+                    override fun getPasswordAuthentication(): PasswordAuthentication {
+                        return PasswordAuthentication(smtpUser, smtpPass)
+                    }
+                })
+
+                val message = MimeMessage(session).apply {
+                    setFrom(InternetAddress(smtpUser))
+                    setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient))
+                    subject = "[TEAMS-NOTIFY] | PartStockAlert"
+
+                    val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+                    val messageCard = JSONObject().apply {
+                        put("@type", "MessageCard")
+                        put("@context", "http://schema.org/extensions")
+                        put("themeColor", "FF0000")
+                        put("summary", "LOW STOCK ALERT: PartStockAlert from MT01-Android-App")
+
+                        val section = JSONObject().apply {
+                            put("activityTitle", "LOW STOCK ALERT: PartStockAlert")
+                            put("activitySubtitle", "Time: $timestamp")
+                            put("text", "Inventory levels have fallen below the defined minimum threshold during an issue transaction.")
+
+                            val facts = JSONArray().apply {
+                                put(JSONObject().apply { put("name", "Part Name"); put("value", stock.partName) })
+                                put(JSONObject().apply { put("name", "Part Code"); put("value", stock.partCode) })
+                                put(JSONObject().apply { put("name", "Current Quantity"); put("value", "${remainingQty.toInt()} ${stock.unit}") })
+                                put(JSONObject().apply { put("name", "Minimum Stock"); put("value", "${stock.minStock.toInt()} ${stock.unit}") })
+                                put(JSONObject().apply { put("value", stock.locId); put("name", "Location") })
+                                put(JSONObject().apply { put("name", "Alert Source"); put("value", "MT01-Android-App") })
+                            }
+                            put("facts", facts)
+                        }
+
+                        put("sections", JSONArray().put(section))
+                    }
+
+                    setText(messageCard.toString())
+                }
+
+                Transport.send(message)
+                Log.i("EmailNotification", "Notification email sent successfully to $recipient")
+
+            } catch (e: MessagingException) {
+                Log.e("EmailNotification", "Failed to send email: ${e.message}", e)
+            } catch (e: Exception) {
+                Log.e("EmailNotification", "Unexpected error sending email: ${e.message}", e)
+            }
+        }
+    }
+
     private fun sendTeamsAlertIfNeeded(stock: StockInfo, remainingQty: Double) {
+        /*
+        // TODO: Disabled during transition to SMTP Email Notifications.
         if (remainingQty >= stock.minStock) return          // ยังปกติ ไม่ต้องแจ้ง
 
         val webhookUrl = SqlConnectionVariable.teamsWebhookUrl
@@ -351,6 +446,7 @@ class IssueActivity : BaseActivity() {
                 // fail silently — ไม่กระทบ user
             }
         }
+        */
     }
 
     private fun resetForm() {

@@ -39,6 +39,14 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/LICENSE.md"
+        }
     }
 }
 
@@ -100,4 +108,6 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.zxing)
+    implementation(libs.mail.sun)
+    implementation(libs.activation.sun)
 }

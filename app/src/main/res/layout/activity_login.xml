@@ -132,6 +132,15 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:layout_marginTop="4dp"
                     tools:text="Database: TEST_KCOP" />
+
+                <TextView
+                    android:id="@+id/version_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorTextSecondary"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:layout_marginTop="4dp"
+                    tools:text="Version: 1.0.0" />
             </LinearLayout>
 
         </LinearLayout>

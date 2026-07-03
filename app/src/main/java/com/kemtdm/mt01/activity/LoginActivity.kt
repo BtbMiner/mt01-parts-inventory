@@ -63,6 +63,7 @@ class LoginActivity : BaseActivity() {
 
         // Set dynamic titles and info
         binding.appTitleTextView.text = getString(R.string.app_login_title)
+        binding.versionTextView.text = "Version: ${com.kemtdm.mt01.BuildConfig.VERSION_NAME}"
         updateConnectionLabels()
 
         Log.d(logTAG, "LoginActivity created. Setting up click listener.")
