@@ -10,7 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.android.material.button.MaterialButton
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+//import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -33,11 +33,11 @@ import com.kemtdm.mt01.utils.QuantitySelectorHandler
 import com.kemtdm.mt01.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+//import kotlinx.coroutines.withContext
+//import okhttp3.MediaType.Companion.toMediaType
+//import okhttp3.OkHttpClient
+//import okhttp3.Request
+//import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -399,55 +399,55 @@ class IssueActivity : BaseActivity() {
         }
     }
 
-    private fun sendTeamsAlertIfNeeded(stock: StockInfo, remainingQty: Double) {
-        /*
-        // TODO: Disabled during transition to SMTP Email Notifications.
-        if (remainingQty >= stock.minStock) return          // ยังปกติ ไม่ต้องแจ้ง
+    /*private fun sendTeamsAlertIfNeeded(stock: StockInfo, remainingQty: Double) {
 
-        val webhookUrl = SqlConnectionVariable.teamsWebhookUrl
+       // TODO: Disabled during transition to SMTP Email Notifications.
+       if (remainingQty >= stock.minStock) return          // ยังปกติ ไม่ต้องแจ้ง
 
-        if (webhookUrl.isBlank()) {
-            Log.w("TeamsAlert", "Webhook URL not configured")
-            return
-        }
+       val webhookUrl = SqlConnectionVariable.teamsWebhookUrl
 
-        if (!webhookUrl.startsWith("http")) {
-            Log.w("TeamsAlert", "Invalid webhook URL: $webhookUrl")
-            return
-        }
+       if (webhookUrl.isBlank()) {
+           Log.w("TeamsAlert", "Webhook URL not configured")
+           return
+       }
 
-        // fire-and-forget — ไม่ block UI และไม่กระทบ flow หลัก
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val message = buildString {
-                    append("⚠️ **Low Stock Alert — MT01**\n\n")
-                    append("**${stock.partName}**")
-                    if (stock.partCode.isNotBlank()) append(" (${stock.partCode})")
-                    append("\n")
-                    append("📦 คงเหลือ: **${remainingQty.toInt()} ${stock.unit}**")
-                    append(" | Min: ${stock.minStock.toInt()} ${stock.unit}")
-                    append("\n📍 Location: ${stock.locId}")
-                }
+       if (!webhookUrl.startsWith("http")) {
+           Log.w("TeamsAlert", "Invalid webhook URL: $webhookUrl")
+           return
+       }
 
-                val json = """{"text":"$message"}"""
+       // fire-and-forget — ไม่ block UI และไม่กระทบ flow หลัก
+       lifecycleScope.launch(Dispatchers.IO) {
+           try {
+               val message = buildString {
+                   append("⚠️ **Low Stock Alert — MT01**\n\n")
+                   append("**${stock.partName}**")
+                   if (stock.partCode.isNotBlank()) append(" (${stock.partCode})")
+                   append("\n")
+                   append("📦 คงเหลือ: **${remainingQty.toInt()} ${stock.unit}**")
+                   append(" | Min: ${stock.minStock.toInt()} ${stock.unit}")
+                   append("\n📍 Location: ${stock.locId}")
+               }
 
-                val request = Request.Builder()
-                    .url(webhookUrl)
-                    .post(json.toRequestBody("application/json".toMediaType()))
-                    .build()
+               val json = """{"text":"$message"}"""
 
-                okHttpClient.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        android.util.Log.w("TeamsAlert", "Webhook response: ${response.code}")
-                    }
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("TeamsAlert", "Failed to send alert: ${e.message}")
-                // fail silently — ไม่กระทบ user
-            }
-        }
-        */
-    }
+               val request = Request.Builder()
+                   .url(webhookUrl)
+                   .post(json.toRequestBody("application/json".toMediaType()))
+                   .build()
+
+               okHttpClient.newCall(request).execute().use { response ->
+                   if (!response.isSuccessful) {
+                       android.util.Log.w("TeamsAlert", "Webhook response: ${response.code}")
+                   }
+               }
+           } catch (e: Exception) {
+               android.util.Log.e("TeamsAlert", "Failed to send alert: ${e.message}")
+               // fail silently — ไม่กระทบ user
+           }
+       }
+
+    }*/
 
     private fun resetForm() {
         currentStock              = null

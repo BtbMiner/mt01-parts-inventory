@@ -48,20 +48,19 @@ android {
             excludes += "/META-INF/LICENSE.md"
         }
     }
+
+    // Modern replacement for applicationVariants.all for APK renaming
+    androidComponents.onVariants { variant ->
+        val appName = "MT01"
+        val date = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(Date())
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("${appName}-${date}.apk")
+        }
+    }
 }
 
 androidComponents {
     onVariants { variant ->
-        val appName = project.rootProject.name
-        val date = SimpleDateFormat("yyyy-MM-dd_HHmm", Locale.getDefault()).format(Date())
-        val buildTypeName = variant.buildType ?: variant.name
-
-        // Set the output file name for the APK
-        variant.outputs.forEach { output ->
-            output.outputFileName.set("${appName}-${date}.apk")
-        }
-
-        // Keep the copy task for convenience (moves APK to a predictable folder)
         val capitalizedVariantName = variant.name.replaceFirstChar { it.uppercase() }
         val renameTask = tasks.register<Copy>("copy${capitalizedVariantName}Apk") {
             val apkFolder = variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.APK)
